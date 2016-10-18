@@ -50,7 +50,7 @@ class Out extends React.Component<void, OutState> {
   private hookOnURL() {
     this.onURL.mergeMap(url =>
       ajax({
-        url: `http://localhost:3000/proxy/${encodeURIComponent(url)}`,
+        url: `${SERVER_URL}/proxy/${encodeURIComponent(url)}`,
         crossDomain: true,
         responseType: "text",
       })

@@ -13,6 +13,10 @@ module.exports = function (maybeEnv) {
   
   const publicPath = env.production ? undefined : '/'
   const sourceMap = !env.disableSourceMap
+  const serverUrl = env.firebase ? 'https://quiet-headland-30358.herokuapp.com' : 'http://localhost:3000'
+  const defines = {
+    SERVER_URL: JSON.stringify(serverUrl),
+  }
 
   const plugins = [
     new HtmlWebpackPlugin({
@@ -47,11 +51,6 @@ module.exports = function (maybeEnv) {
           }
         }
       }),
-      new webpack.DefinePlugin({
-        'process.env': {
-          'NODE_ENV': '"production"'
-        }
-      }),
       new webpack.optimize.UglifyJsPlugin({ sourceMap }),
       new ExtractTextPlugin({
         filename: 'styles-[hash].css',
@@ -65,11 +64,19 @@ module.exports = function (maybeEnv) {
     })
 
     devtool = 'source-map'
+
+    Object.assign(defines, {
+      'process.env': {
+        'NODE_ENV': '"production"'
+      }
+    })
   }
 
   if (!sourceMap) {
     devtool = undefined
   }
+
+  plugins.push(new webpack.DefinePlugin(defines))
 
   return {
     resolve: {

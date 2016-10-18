@@ -6,9 +6,11 @@
   "scripts": {
     "build": "webpack --env.production",
     "build:stripped": "webpack --env.production --env.disableSourceMap",
+    "build:firebase": "webpack --env.production --env.disableSourceMap --env.firebase",
     "analyze": "webpack --json --env.production > analysis.json",
     "dev": "webpack-dev-server --progress --inline",
     "dev:prod": "webpack-dev-server --env.production --progress --inline",
+    "deploy": "npm run build:firebase && firebase deploy",
     "postinstall": "typings install"
   },
   "repository": {
