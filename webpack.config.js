@@ -23,6 +23,7 @@ module.exports = function (maybeEnv) {
       template: 'src/index.template.ejs',
       inject: 'body',
     }),
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/)
   ]
 
   const styleLoader = {
