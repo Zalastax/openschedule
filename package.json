@@ -1,0 +1,54 @@
+{
+  "name": "openschedule",
+  "version": "0.0.1",
+  "description": "Merge calendars to see when you have shared free time",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --env.production",
+    "build:stripped": "webpack --env.production --env.disableSourceMap",
+    "analyze": "webpack --json --env.production > analysis.json",
+    "dev": "webpack-dev-server --progress --inline",
+    "dev:prod": "webpack-dev-server --env.production --progress --inline",
+    "postinstall": "typings install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zalastax/openschedule.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Zalastax/openschedule/issues"
+  },
+  "homepage": "https://github.com/Zalastax/openschedule#readme",
+  "dependencies": {
+    "core-js": "^2.4.1",
+    "ical": "^0.5.0",
+    "moment": "^2.15.1",
+    "react": "^15.3.0",
+    "react-addons-shallow-compare": "^15.3.2",
+    "react-dom": "^15.3.0",
+    "react-router": "^2.6.0",
+    "rxjs": "^5.0.0-rc.1",
+    "shallowequal": "^0.2.2"
+  },
+  "devDependencies": {
+    "awesome-typescript-loader": "^2.0.2",
+    "css-class-generator": "^1.0.1",
+    "css-loader": "file:../css-loader",
+    "extract-text-webpack-plugin": "^2.0.0-beta.4",
+    "html-webpack-plugin": "^2.22.0",
+    "json-loader": "^0.5.4",
+    "node-sass": "^3.10.0",
+    "sass-loader": "file:../sass-loader",
+    "style-loader": "^0.13.1",
+    "stylus": "^0.54.5",
+    "stylus-loader": "^2.3.1",
+    "tslint": "^3.15.1",
+    "typescript": "^2.1.0-dev.20161016",
+    "typings": "^1.4.0",
+    "typings-for-css-modules-loader": "file:../typings-for-css-modules-loader",
+    "webpack": "^2.1.0-beta.25",
+    "webpack-config": "^6.1.3",
+    "webpack-dev-server": "^2.1.0-beta.5"
+  }
+}

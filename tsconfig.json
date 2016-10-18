@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "removeComments": true,
+        "strictNullChecks": true,
+        "jsx": "react",
+        "module": "commonjs",
+        "moduleResolution": "node"
+    },
+    "exclude": [
+        "node_modules",
+        "bower_components"
+    ],
+    "awesomeTypescriptLoaderOptions": {}
+}
