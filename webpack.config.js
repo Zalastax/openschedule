@@ -1,6 +1,8 @@
 const webpack = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const path = require('path')
+
 const cssNameGenerator = require('css-class-generator')
 const nameIt = cssNameGenerator('_')
 
@@ -9,8 +11,8 @@ module.exports = function (maybeEnv) {
   const nameCache = {}
 
   let devtool = 'cheap-module-eval-source-map'
-                    
-  
+
+
   const publicPath = env.production ? undefined : '/'
   const sourceMap = !env.disableSourceMap
   const serverUrl = env.firebase ? 'https://quiet-headland-30358.herokuapp.com' : 'http://localhost:3000'
@@ -81,7 +83,8 @@ module.exports = function (maybeEnv) {
 
   return {
     resolve: {
-      extensions: ['.ts', '.tsx', '.webpack.js', '.web.js', '.js']
+      extensions: ['.ts', '.tsx', '.webpack.js', '.web.js', '.js'],
+      modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     devtool,
     entry: './src/index.tsx',

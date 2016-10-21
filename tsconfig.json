@@ -6,7 +6,8 @@
         "strictNullChecks": true,
         "jsx": "react",
         "module": "commonjs",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "baseUrl": "./src"
     },
     "exclude": [
         "node_modules",

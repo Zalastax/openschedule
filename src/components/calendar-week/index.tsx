@@ -1,20 +1,21 @@
 import * as React from "react"
 import * as compare from "react-addons-shallow-compare"
 import * as moment from "moment"
+import { connect } from "react-redux"
 
+import { Interval, IntervalTree } from "node-interval-tree"
 import { IcsEntry } from "ical/ical.js"
 
-export interface IcsInterval extends IcsEntry, Interval {}
-
+import { State } from "model"
 
 // Set locale to ISO 8601 weeks
 moment.updateLocale("en", { week: { dow: 1, doy: 4 } })
 
-import { Interval, IntervalTree } from "node-interval-tree"
-
 import DayHours from "./hours"
 
 import * as CSS from "./index.styl"
+
+export interface IcsInterval extends IcsEntry, Interval {}
 
 export interface StringInterval extends Interval {
   data: string
@@ -45,11 +46,13 @@ const weekStart = now.startOf("week")
 
 interface HeightProps {
   height: number
+  max: number
 }
 
 interface CalendarDayProps {
   date: number
   heights: number[]
+  max: number
 }
 
 class Height extends React.Component<HeightProps, void> {
@@ -57,12 +60,15 @@ class Height extends React.Component<HeightProps, void> {
     return (
       <div
         className={CSS.height}
-        style={{ backgroundColor: this.color(this.props.height, 2) }}
+        style={{ backgroundColor: this.color(this.props.height, this.props.max) }}
       />
     )
   }
 
   private color(v: number, max: number) {
+    if (max < 1) {
+      return `hsl(120, 100%, 50%)`
+    }
     return `hsl(${120 - (v / max) * 120}, 100%, 50%)`
   }
 }
@@ -78,7 +84,7 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
       <div className={CSS.otherDays}>
         <div className={CSS.date}>{ this.props.date }</div>
         {
-          this.props.heights.map((a, i) => <Height height={a} key={i} />)
+          this.props.heights.map((a, i) => <Height height={a} key={i} max={this.props.max} />)
         }
         <DayHours />
       </div>
@@ -88,9 +94,11 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
 
 export interface CalendarWeekProps {
   intervals: IntervalTree<IcsInterval>
+  update: number
+  max: number
 }
 
-export class CalendarWeek extends React.Component<CalendarWeekProps, void> {
+class CalendarWeek extends React.Component<CalendarWeekProps, void> {
 
   public render() {
     const days = this.getDays()
@@ -113,6 +121,7 @@ export class CalendarWeek extends React.Component<CalendarWeekProps, void> {
                 key={date}
                 date={date}
                 heights={analyzeIntervals(intervals)}
+                max={this.props.max}
               />)
           }
           </ul>
@@ -128,3 +137,13 @@ export class CalendarWeek extends React.Component<CalendarWeekProps, void> {
       .map((d): [number, IcsInterval[]] => [d.date(), this.props.intervals.search(+d, +d.endOf("day"))])
   }
 }
+
+function mapStateToProps(state: State): CalendarWeekProps {
+  return {
+    intervals: state.tree.tree,
+    update: state.tree.update,
+    max: Object.keys(state.schedule).length,
+  }
+}
+
+export default connect(mapStateToProps)(CalendarWeek)

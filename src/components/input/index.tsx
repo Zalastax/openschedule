@@ -1,4 +1,11 @@
 import * as React from "react"
+import { connect } from "react-redux"
+import { Dispatch, bindActionCreators } from "redux"
+import { State } from "model/modules/root"
+
+import { REQUEST_URL } from "model/modules/calendars"
+import  { ActionCreator } from "redux-typescript-actions"
+
 
 interface Subscriber<T> {
   next(value?: T): void
@@ -8,10 +15,10 @@ interface Subscriber<T> {
 }
 
 export interface CalendarInputProps {
-  onGo: Subscriber<string>
+  onGo: ActionCreator<string, string>
 }
 
-export default class CalendarInput extends React.Component<CalendarInputProps, void> {
+class CalendarInput extends React.Component<CalendarInputProps, void> {
   private input: HTMLInputElement
 
   public render() {
@@ -27,7 +34,12 @@ export default class CalendarInput extends React.Component<CalendarInputProps, v
   }
 
   private onClick = () => {
-    console.log("was clicked", this.props.onGo)
-    this.props.onGo.next(this.input.value)
+    this.props.onGo(this.input.value)
   }
 }
+
+const mapDispatchToProps = (dispatch: Dispatch<State>) => bindActionCreators({
+  onGo: REQUEST_URL.started,
+}, dispatch)
+
+export default connect(dispatch => ({ }), mapDispatchToProps)(CalendarInput)
