@@ -17,6 +17,10 @@ export interface CalendarsState {
 export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>("SCHEDULE_REQUEST_URL")
 export const SELECTION_CHANGE = actionCreator<SelectionChange>("SELECTION_CHANGE")
 
+function isDayStart(m: moment.Moment): boolean {
+  return m.isSame(moment(m).startOf("day"))
+}
+
 export const requestUrlEpic = (action$: ActionsObservable<URL>, store: MiddlewareAPI<State>) =>
   action$
     .ofType(REQUEST_URL.started.type)
@@ -33,8 +37,16 @@ export const requestUrlEpic = (action$: ActionsObservable<URL>, store: Middlewar
       .map(response => {
         const ics = parseICS(response.response)
         const result = Object.values(ics)
-          .map((value: IcsEntry): IcsInterval =>
-            Object.assign({ low: +moment(value.start), high: +moment(value.end) }, value)
+          .map((value: IcsEntry): IcsInterval => {
+            const startMoment = moment(value.start)
+            const endMoment = moment(value.end)
+            if (startMoment.isSame(endMoment) && isDayStart(startMoment)) {
+              // Mutate endMoment to be end of day
+              endMoment.endOf("day")
+            }
+
+            return Object.assign({ low: +startMoment, high: +endMoment}, value)
+            }
           )
 
         return REQUEST_URL.done({ params: action.payload, result })
