@@ -40,8 +40,7 @@ function analyzeIntervals(intervals: Interval[]) {
   return height
 }
 
-const now = moment()
-const weekStart = now.startOf("week")
+const weekStart = moment().startOf("week")
 
 
 interface HeightProps {
@@ -106,7 +105,7 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
     return (
       <div>
         <header>
-          <h1>{now.format("MMMM YYYY")}</h1>
+          <h1>{weekStart.format("MMMM YYYY")}</h1>
         </header>
         <div className={CSS.calendar}>
           <ul className={CSS.weekdays}>
