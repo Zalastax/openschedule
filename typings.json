@@ -1,6 +1,7 @@
 {
   "globalDependencies": {
     "core-js": "registry:dt/core-js#0.0.0+20160914114559",
+    "node": "registry:dt/node#6.0.0+20161019125345",
     "react": "registry:dt/react#0.14.0+20160720060442",
     "react-addons-shallow-compare": "registry:dt/react-addons-shallow-compare#0.14.0+20160709044614",
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040"

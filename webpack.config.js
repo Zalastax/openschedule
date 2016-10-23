@@ -1,6 +1,8 @@
 const webpack = require('webpack')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin')
+const caseSensitivePathsWebpackPlugin = require('case-sensitive-paths-webpack-plugin')
 const path = require('path')
 
 const cssNameGenerator = require('css-class-generator')
@@ -21,11 +23,10 @@ module.exports = function (maybeEnv) {
   }
 
   const plugins = [
-    new HtmlWebpackPlugin({
-      template: 'src/index.template.ejs',
-      inject: 'body',
-    }),
-    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/)
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/),
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new caseSensitivePathsWebpackPlugin(),
+    new WatchMissingNodeModulesPlugin(path.resolve('node_modules'))
   ]
 
   const styleLoader = {
@@ -34,8 +35,15 @@ module.exports = function (maybeEnv) {
       sourceMap,
     }
   }
-
   let wrapCss = loaders => [styleLoader, ...loaders]
+
+  const tsLoaders = ['awesome-typescript-loader']
+  const entry = ['./src/index.tsx']
+
+  if (env.hmr) {
+    tsLoaders.unshift('react-hot')
+    plugins.push(new webpack.NamedModulesPlugin())
+  }
 
   if (env.production) {
     plugins.push(
@@ -81,13 +89,20 @@ module.exports = function (maybeEnv) {
 
   plugins.push(new webpack.DefinePlugin(defines))
 
+  if (!env.disableIndex) {
+    plugins.push(new HtmlWebpackPlugin({
+      template: 'src/index.template.ejs',
+      inject: 'body',
+    }))
+  }
+
   return {
     resolve: {
       extensions: ['.ts', '.tsx', '.webpack.js', '.web.js', '.js'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     devtool,
-    entry: './src/index.tsx',
+    entry,
     output: {
       path: __dirname + '/build',
       filename: './bundle.js',
@@ -95,7 +110,7 @@ module.exports = function (maybeEnv) {
     },
     module: {
       loaders: [
-        { test: /\.tsx?$/, exclude: /node_modules/, loader: 'awesome-typescript-loader' },
+        { test: /\.tsx?$/, exclude: /node_modules/, loaders: tsLoaders },
         { test: /\.scss$/, loaders: wrapCss([
           {
             loader: 'typings-for-css-modules',

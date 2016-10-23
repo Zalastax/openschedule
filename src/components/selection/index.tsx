@@ -3,7 +3,7 @@ import { connect } from "react-redux"
 import { Dispatch, bindActionCreators } from "redux"
 import { State } from "model/modules/root"
 
-import { SELECTION_CHANGE, CalendarsState } from "model/modules/calendars"
+import { SELECTION_CHANGE, CalendarsState, SelectionChange } from "model"
 
 
 interface Subscriber<T> {
@@ -21,7 +21,7 @@ type SC = typeof SELECTION_CHANGE
 
 
 interface DispatchProps {
-  selection: SC
+  selection: (change: SelectionChange) => void
 }
 
 export interface CalendarSelectionProps extends DispatchProps, StateProps {}
@@ -29,7 +29,7 @@ export interface CalendarSelectionProps extends DispatchProps, StateProps {}
 interface SelectionProps {
   name: string
   selected: boolean
-  onChange: SC
+  onChange: (change: SelectionChange) => void
 }
 
 class Selection extends React.Component<SelectionProps, void> {
@@ -58,7 +58,7 @@ class Selection extends React.Component<SelectionProps, void> {
   }
 }
 
-class CalendarSelection extends React.Component<CalendarSelectionProps, void> {
+export class CalendarSelection extends React.Component<CalendarSelectionProps, void> {
   public render() {
     return (
       <ul>
@@ -83,8 +83,10 @@ function mapStateToProps(state: State): StateProps {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch<State>) => bindActionCreators({
-  selection: SELECTION_CHANGE,
-}, dispatch)
+const mapDispatchToProps = (dispatch: Dispatch<State>) => {
+  return {
+    selection: (change: SelectionChange) => { dispatch(SELECTION_CHANGE(change)) },
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps)(CalendarSelection)

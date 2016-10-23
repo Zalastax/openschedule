@@ -8,10 +8,12 @@
     "build:stripped": "webpack --env.production --env.disableSourceMap",
     "build:firebase": "webpack --env.production --env.disableSourceMap --env.firebase",
     "analyze": "webpack --json --env.production > analysis.json",
-    "dev": "webpack-dev-server --progress --inline",
-    "dev:prod": "webpack-dev-server --env.production --progress --inline",
+    "dev": "webpack-dev-server --progress --inline --hot --env.hmr",
+    "dev:prod": "webpack-dev-server --env.production --progress --inline --hot",
     "deploy": "npm run build:firebase && firebase deploy",
-    "postinstall": "typings install"
+    "postinstall": "typings install",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
   },
   "repository": {
     "type": "git",
@@ -39,12 +41,15 @@
     "shallowequal": "^0.2.2"
   },
   "devDependencies": {
+    "@kadira/storybook": "file:../react-storybook",
     "awesome-typescript-loader": "^2.0.2",
     "css-class-generator": "^1.0.1",
     "css-loader": "file:../css-loader",
     "extract-text-webpack-plugin": "^2.0.0-beta.4",
     "html-webpack-plugin": "^2.22.0",
     "json-loader": "^0.5.4",
+    "react-dev-utils": "^0.3.0",
+    "react-hot-loader": "^1.3.0",
     "style-loader": "^0.13.1",
     "stylus": "^0.54.5",
     "stylus-loader": "^2.3.1",
@@ -54,6 +59,8 @@
     "typings-for-css-modules-loader": "file:../typings-for-css-modules-loader",
     "webpack": "^2.1.0-beta.25",
     "webpack-config": "^6.1.3",
-    "webpack-dev-server": "^2.1.0-beta.5"
+    "webpack-dev-middleware": "^1.8.4",
+    "webpack-dev-server": "^2.1.0-beta.5",
+    "webpack-hot-middleware": "^2.13.0"
   }
 }
