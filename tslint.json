@@ -16,7 +16,11 @@
      "object-literal-sort-keys": false,
      "linebreak-style": [true, "LF"],
      "indent": [true, "spaces"],
-     "no-unused-variable": [true, {"ignore-pattern": "^_"}]
+     "variable-name": [
+       true,
+       "check-format",
+       "allow-leading-underscore"
+     ]
   },
   "rulesDirectory": [
     /*
