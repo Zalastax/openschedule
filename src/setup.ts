@@ -8,4 +8,6 @@ import "rxjs/add/operator/delay"
 import "rxjs/add/operator/catch"
 import "rxjs/add/observable/of"
 
+import "rx-custom/add/filterUndefined"
+
 // const isDev = (process && process.env && process.env.NODE_ENV) !== "production"
