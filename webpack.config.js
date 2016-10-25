@@ -26,7 +26,15 @@ module.exports = function (maybeEnv) {
     new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/),
     new webpack.optimize.OccurrenceOrderPlugin(),
     new caseSensitivePathsWebpackPlugin(),
-    new WatchMissingNodeModulesPlugin(path.resolve('node_modules'))
+    new WatchMissingNodeModulesPlugin(path.resolve('node_modules')),
+    new webpack.LoaderOptionsPlugin({
+      options: {
+        tslint: {
+          emitErrors: false,
+          failOnHint: false,
+        },
+      },
+    }),
   ]
 
   const styleLoader = {
@@ -111,6 +119,11 @@ module.exports = function (maybeEnv) {
     module: {
       loaders: [
         { test: /\.tsx?$/, exclude: /node_modules/, loaders: tsLoaders },
+        {
+          enforce: 'pre',
+          test: /\.tsx?$/,
+          loader: 'tslint',
+        },
         { test: /\.scss$/, loaders: wrapCss([
           {
             loader: 'typings-for-css-modules',
