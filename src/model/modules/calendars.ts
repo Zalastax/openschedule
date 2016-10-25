@@ -2,7 +2,8 @@ import { Action as ReduxAction, MiddlewareAPI } from "redux"
 import { Observable } from "rxjs"
 import { ActionsObservable } from "redux-observable"
 import { IcsInterval, URL, SelectionChange, State } from "model"
-import actionCreator, { isType, Action } from "redux-typescript-actions"
+import { errorTranslators } from "./errors"
+import actionCreator, { isType, Action, FailedAction } from "redux-typescript-actions"
 import { ajax } from "rxjs/observable/dom/ajax.js"
 import { parseICS, IcsEntry } from "ical/ical.js"
 import * as moment from "moment"
@@ -17,14 +18,17 @@ export interface CalendarsState {
 export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>("SCHEDULE_REQUEST_URL")
 export const SELECTION_CHANGE = actionCreator<SelectionChange>("SELECTION_CHANGE")
 
+errorTranslators[REQUEST_URL.failed.type] = (x: Action<FailedAction<URL, Error>>) =>
+  `Failed to get ${x.payload.params}: ${JSON.stringify(x.payload.error, ["message", "arguments", "type", "name"])}`
+
 function isDayStart(m: moment.Moment): boolean {
   return m.isSame(moment(m).startOf("day"))
 }
 
-export const requestUrlEpic = (action$: ActionsObservable<URL>, store: MiddlewareAPI<State>) =>
+export const requestUrlEpic = (action$: ActionsObservable<Action<URL>>, store: MiddlewareAPI<State>) =>
   action$
     .ofType(REQUEST_URL.started.type)
-    .mergeMap((action: Action<string>) => {
+    .mergeMap((action: Action<URL>) => {
       if (store.getState().schedule[action.payload]) {
         return Observable.empty()
       }
