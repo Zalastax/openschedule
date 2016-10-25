@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as compare from "react-addons-shallow-compare"
+import compare = require("react-addons-shallow-compare")
 import * as moment from "moment"
 import { connect } from "react-redux"
 
