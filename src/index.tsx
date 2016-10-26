@@ -13,7 +13,6 @@ import CalendarInput from "components/input"
 import CalendarSelection from "components/selection"
 import ErrorDisplay from "components/errors"
 
-
 const store = configureStore({})
 
 class Out extends React.Component<void, void> {
@@ -38,5 +37,5 @@ ReactDOM.render(
   <Provider store={store}>
     <Out />
   </Provider>,
-  document.getElementById("content") as HTMLElement
+  document.getElementById("content") as HTMLElement,
 )

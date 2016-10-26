@@ -10,16 +10,18 @@ export interface ErrorsState {
 }
 
 export const NEW_ERROR = actionCreator<string>("NEW_ERROR")
+// Add to this object to add more error translations
+export const errorTranslators: ET = {}
 
 interface ET {
   [key: string]: (x: ReduxAction) => string | undefined
 }
 
+// =============================================================================
+// Epics
+// =============================================================================
 
-// Add to this object to add more error translations
-export const errorTranslators: ET = {}
-
-export const errorsEpic = (action$: ActionsObservable<ReduxAction>, store: MiddlewareAPI<State>) =>
+export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: MiddlewareAPI<State>) =>
   action$
   .map<ReduxAction, Action<string> | undefined>(x => {
     const f = errorTranslators[x.type]
@@ -32,6 +34,9 @@ export const errorsEpic = (action$: ActionsObservable<ReduxAction>, store: Middl
   })
   .filterUndefined()
 
+// =============================================================================
+// Reducer
+// =============================================================================
 
 export const errors = (state = {}, action: ReduxAction): ErrorsState => {
   if (isType(action, NEW_ERROR)) {

@@ -25,6 +25,10 @@ function isDayStart(m: moment.Moment): boolean {
   return m.isSame(moment(m).startOf("day"))
 }
 
+// =============================================================================
+// Epics
+// =============================================================================
+
 export const requestUrlEpic = (action$: ActionsObservable<Action<URL>>, store: MiddlewareAPI<State>) =>
   action$
     .ofType(REQUEST_URL.started.type)
@@ -50,15 +54,19 @@ export const requestUrlEpic = (action$: ActionsObservable<Action<URL>>, store: M
             }
 
             return Object.assign({ low: +startMoment, high: +endMoment}, value)
-            }
+            },
           )
 
         return REQUEST_URL.done({ params: action.payload, result })
       })
       .catch((error: Error) => Observable.of(REQUEST_URL.failed({params: action.payload, error})))
 
-      }
+      },
     )
+
+// =============================================================================
+// Reducer
+// =============================================================================
 
 export const schedule = (state: CalendarsState = { }, action: ReduxAction): CalendarsState => {
   let newState = state
@@ -82,7 +90,6 @@ export const schedule = (state: CalendarsState = { }, action: ReduxAction): Cale
       })
     }
   }
-
 
   return newState
 }

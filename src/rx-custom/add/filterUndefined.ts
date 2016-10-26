@@ -3,7 +3,7 @@ import { filterUndefined } from "../operator/filterUndefined"
 
 declare module "rxjs/Observable" {
     interface Observable<T> {
-        filterUndefined: typeof filterUndefined;
+        filterUndefined: typeof filterUndefined
     }
 }
 

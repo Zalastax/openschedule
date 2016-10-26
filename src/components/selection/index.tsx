@@ -1,30 +1,9 @@
 import * as React from "react"
 import { connect } from "react-redux"
-import { Dispatch, bindActionCreators } from "redux"
+import { Dispatch } from "redux"
 import { State } from "model/modules/root"
 
 import { SELECTION_CHANGE, CalendarsState, SelectionChange } from "model"
-
-
-interface Subscriber<T> {
-  next(value?: T): void
-  error(err: any): void
-  complete(): void
-  unsubscribe(): void
-}
-
-interface StateProps {
-  schedule: CalendarsState
-}
-
-type SC = typeof SELECTION_CHANGE
-
-
-interface DispatchProps {
-  selection: (change: SelectionChange) => void
-}
-
-export interface CalendarSelectionProps extends DispatchProps, StateProps {}
 
 interface SelectionProps {
   name: string
@@ -48,15 +27,24 @@ class Selection extends React.Component<SelectionProps, void> {
     )
   }
 
-  private onChange = (event: React.FormEvent) => {
-    const target = event.target as React.HTMLProps<HTMLInputElement>
-    console.log(target.checked)
+  private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const target = event.target
     this.props.onChange({
       name: this.props.name,
       value: !!target.checked,
     })
   }
 }
+
+interface StateProps {
+  schedule: CalendarsState
+}
+
+interface DispatchProps {
+  selection: (change: SelectionChange) => void
+}
+
+export interface CalendarSelectionProps extends DispatchProps, StateProps {}
 
 export class CalendarSelection extends React.Component<CalendarSelectionProps, void> {
   public render() {

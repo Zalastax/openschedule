@@ -1,23 +1,18 @@
 import { Action as ReduxAction, MiddlewareAPI } from "redux"
-import { Observable } from "rxjs"
-import { IcsInterval, State, SelectionChange } from "model"
+import {
+  IcsInterval,
+  State,
+  SelectionChange,
+  REQUEST_URL,
+  SELECTION_CHANGE,
+} from "model"
 import actionCreator, { isType, Action } from "redux-typescript-actions"
 import { ActionsObservable } from "redux-observable"
 import { IntervalTree } from "node-interval-tree"
 
-import { REQUEST_URL } from "./calendars"
-import { SELECTION_CHANGE } from "./calendars"
-
-type URL = string
-
 export interface TreeState {
   tree: IntervalTree<IcsInterval>,
   update: number
-}
-
-interface FetchedUrl {
-  url: URL
-  intervals: IcsInterval[]
 }
 
 const startState: TreeState = {
@@ -25,19 +20,22 @@ const startState: TreeState = {
   update: 0,
 }
 
-interface TreeToggle {
+export interface TreeToggle {
   on: boolean,
   sc: IcsInterval[],
 }
 
 export const TREE_TOGGLE = actionCreator<TreeToggle>("TREE_TOGGLE")
 
+// =============================================================================
+// Epics
+// =============================================================================
+
 export const toggleEpic = (action$: ActionsObservable<SelectionChange>, store: MiddlewareAPI<State>) =>
   action$
     .ofType(SELECTION_CHANGE.type)
     .map((action: Action<SelectionChange>) => {
       const sc = store.getState().schedule[action.payload.name]
-      console.log(sc)
       if (!sc) {
         return
       }
@@ -46,7 +44,11 @@ export const toggleEpic = (action$: ActionsObservable<SelectionChange>, store: M
         sc: sc.interval,
       })
     })
-    .filter(x => x !== undefined) as Observable<Action<TreeToggle>>
+    .filterUndefined()
+
+// =============================================================================
+// Reducer
+// =============================================================================
 
 export const tree = (state = startState, action: ReduxAction): TreeState => {
   let newState = state
@@ -65,7 +67,6 @@ export const tree = (state = startState, action: ReduxAction): TreeState => {
   if (isType(action, TREE_TOGGLE)) {
     const payload = action.payload
 
-    console.log(1, payload)
     if (payload.on) {
       payload.sc.forEach(value => state.tree.insert(value))
     } else {
@@ -78,7 +79,6 @@ export const tree = (state = startState, action: ReduxAction): TreeState => {
       tree: state.tree,
       update: state.update + 1,
     }
-    console.log(2, newState)
   }
 
   return newState

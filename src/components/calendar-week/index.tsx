@@ -21,7 +21,6 @@ export interface StringInterval extends Interval {
   data: string
 }
 
-
 function analyzeIntervals(intervals: Interval[]) {
   const height = [0]
   for (let i = 1; i < 288; i++) {
@@ -42,15 +41,12 @@ function analyzeIntervals(intervals: Interval[]) {
 
 const weekStart = moment().startOf("week")
 
+// =============================================================================
+// Height
+// =============================================================================
 
 interface HeightProps {
   height: number
-  max: number
-}
-
-interface CalendarDayProps {
-  date: number
-  heights: number[]
   max: number
 }
 
@@ -72,6 +68,15 @@ class Height extends React.Component<HeightProps, void> {
   }
 }
 
+// =============================================================================
+// CalendarDay
+// =============================================================================
+
+interface CalendarDayProps {
+  date: number
+  heights: number[]
+  max: number
+}
 
 class CalendarDay extends React.Component<CalendarDayProps, void> {
   public shouldComponentUpdate(nextProps: CalendarDayProps) {
@@ -90,6 +95,10 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
     )
   }
 }
+
+// =============================================================================
+// CalendarWeek
+// =============================================================================
 
 export interface CalendarWeekProps {
   intervals: IntervalTree<IcsInterval>

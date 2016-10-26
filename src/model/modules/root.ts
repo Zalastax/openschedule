@@ -7,7 +7,7 @@ import { errors, ErrorsState, errorsEpic } from "./errors"
 export const rootEpic = combineEpics(
   errorsEpic,
   requestUrlEpic,
-  toggleEpic
+  toggleEpic,
 )
 
 export interface State {
