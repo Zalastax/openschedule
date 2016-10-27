@@ -9,5 +9,6 @@ import "rxjs/add/operator/catch"
 import "rxjs/add/observable/of"
 
 import "rx-custom/add/filterUndefined"
+import "rx-custom/add/onSilence"
 
 // const isDev = (process && process.env && process.env.NODE_ENV) !== "production"
