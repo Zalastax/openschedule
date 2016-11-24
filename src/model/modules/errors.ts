@@ -1,9 +1,9 @@
-import { Observable } from "rxjs/Observable"
+import { Observable } from "rxjs"
 import { Action as ReduxAction, MiddlewareAPI } from "redux"
 import {
   State,
 } from "model"
-import actionCreator, { isType, Action } from "redux-typescript-actions"
+import actionCreator, { isType, Action } from "./actionCreator"
 import { ActionsObservable } from "redux-observable"
 
 export interface ErrorsState {
@@ -23,8 +23,9 @@ interface ET {
 // Epics
 // =============================================================================
 
-export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: MiddlewareAPI<State>) =>
-  action$
+export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: MiddlewareAPI<State>) => {
+  const timer = Observable.interval(1000)
+  const real = action$
   .map<ReduxAction, Action<string> | Action<undefined> | undefined>(x => {
     const f = errorTranslators[x.type]
     if (f !== undefined) {
@@ -35,7 +36,15 @@ export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: Midd
     }
   })
   .filterUndefined()
-  .onSilence(5000, ERROR_TIMEOUT())
+
+  return real.publish(_real => Observable.merge(
+  _real,
+  _real.switchMapTo(
+    Observable.empty().delay(5000).concat(timer.map(x => NEW_ERROR(`${x}`))),
+  )))
+}
+
+
 
 // =============================================================================
 // Reducer

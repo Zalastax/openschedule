@@ -99,5 +99,6 @@ Session.vim
 
 typings/
 build/
+tmp/
 
 *.styl.d.ts

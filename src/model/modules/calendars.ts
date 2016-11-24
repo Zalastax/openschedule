@@ -1,10 +1,9 @@
 import { Action as ReduxAction, MiddlewareAPI } from "redux"
 import { Observable } from "rxjs"
 import { ActionsObservable } from "redux-observable"
-import { IcsInterval, URL, SelectionChange, State } from "model"
+import { IcsInterval, URL, SelectionChange, State, Api } from "model"
 import { errorTranslators } from "./errors"
-import actionCreator, { isType, Action, FailedAction } from "redux-typescript-actions"
-import { ajax } from "rxjs/observable/dom/ajax.js"
+import actionCreator, { isType, Action, Failure } from "./actionCreator"
 import { parseICS, IcsEntry } from "ical/ical.js"
 import * as moment from "moment"
 
@@ -18,7 +17,7 @@ export interface CalendarsState {
 export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>("SCHEDULE_REQUEST_URL")
 export const SELECTION_CHANGE = actionCreator<SelectionChange>("SELECTION_CHANGE")
 
-errorTranslators[REQUEST_URL.failed.type] = (x: Action<FailedAction<URL, Error>>) =>
+errorTranslators[REQUEST_URL.failed.type] = (x: Action<Failure<URL, Error>>) =>
   `Failed to get ${x.payload.params}: ${JSON.stringify(x.payload.error, ["message", "arguments", "type", "name"])}`
 
 function isDayStart(m: moment.Moment): boolean {
@@ -29,7 +28,7 @@ function isDayStart(m: moment.Moment): boolean {
 // Epics
 // =============================================================================
 
-export const requestUrlEpic = (action$: ActionsObservable<Action<URL>>, store: MiddlewareAPI<State>) =>
+export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<URL>>, store: MiddlewareAPI<State>) =>
   action$
     .ofType(REQUEST_URL.started.type)
     .mergeMap((action: Action<URL>) => {
@@ -37,11 +36,7 @@ export const requestUrlEpic = (action$: ActionsObservable<Action<URL>>, store: M
         return Observable.empty()
       }
 
-      return ajax({
-        url: `${SERVER_URL}/proxy/${encodeURIComponent(action.payload)}`,
-        crossDomain: true,
-        responseType: "text",
-      })
+      return api.proxy(action.payload)
       .map(response => {
         const ics = parseICS(response.response)
         const result = Object.values(ics)

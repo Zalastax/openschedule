@@ -16,6 +16,7 @@
      "object-literal-sort-keys": false,
      "linebreak-style": [true, "LF"],
      "indent": [true, "spaces"],
+     "quotemark": [true, "single", "avoid-escape"],
      "variable-name": [
        true,
        "check-format",

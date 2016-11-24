@@ -6,7 +6,7 @@ import {
   REQUEST_URL,
   SELECTION_CHANGE,
 } from "model"
-import actionCreator, { isType, Action } from "redux-typescript-actions"
+import actionCreator, { isType, Action } from "./actionCreator"
 import { ActionsObservable } from "redux-observable"
 import { IntervalTree } from "node-interval-tree"
 
