@@ -38,7 +38,7 @@ module.exports = function (maybeEnv) {
   ]
 
   const styleLoader = {
-    loader: 'style',
+    loader: 'style-loader',
     query: {
       sourceMap,
     }
@@ -49,7 +49,7 @@ module.exports = function (maybeEnv) {
   const entry = ['./src/index.tsx']
 
   if (env.hmr) {
-    tsLoaders.unshift('react-hot')
+    tsLoaders.unshift('react-hot-loader/webpack')
     plugins.push(new webpack.NamedModulesPlugin())
   }
 
@@ -122,11 +122,11 @@ module.exports = function (maybeEnv) {
         {
           enforce: 'pre',
           test: /\.tsx?$/,
-          loader: 'tslint',
+          loader: 'tslint-loader',
         },
         { test: /\.scss$/, loaders: wrapCss([
           {
-            loader: 'typings-for-css-modules',
+            loader: 'typings-for-css-modules-loader',
             query: {
               sourceMap,
               modules: true,
@@ -145,7 +145,7 @@ module.exports = function (maybeEnv) {
         ])},
         { test: /\.styl$/, loaders: wrapCss([
           {
-            loader: 'typings-for-css-modules',
+            loader: 'typings-for-css-modules-loader',
             query: {
               sourceMap,
               modules: true,
