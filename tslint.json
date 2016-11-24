@@ -17,6 +17,8 @@
      "linebreak-style": [true, "LF"],
      "indent": [true, "spaces"],
      "quotemark": [true, "single", "avoid-escape"],
+     "max-classes-per-file": [false],
+     "arrow-parens": false,
      "variable-name": [
        true,
        "check-format",
