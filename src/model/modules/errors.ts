@@ -24,7 +24,6 @@ interface ET {
 // =============================================================================
 
 export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: MiddlewareAPI<State>) => {
-  const timer = Observable.interval(1000)
   const real = action$
   .map<ReduxAction, Action<string> | Action<undefined> | undefined>(x => {
     const f = errorTranslators[x.type]
@@ -40,11 +39,9 @@ export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: Midd
   return real.publish(_real => Observable.merge(
   _real,
   _real.switchMapTo(
-    Observable.empty().delay(5000).concat(timer.map(x => NEW_ERROR(`${x}`))),
+    Observable.of(ERROR_TIMEOUT()).delay(5000),
   )))
 }
-
-
 
 // =============================================================================
 // Reducer
