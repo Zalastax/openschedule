@@ -12,6 +12,7 @@ import CalendarWeek from "components/calendar-week"
 import CalendarInput from "components/input"
 import CalendarSelection from "components/selection"
 import ErrorDisplay from "components/errors"
+import WeekSelection from 'components/week-selection'
 
 const store = configureStore({})
 
@@ -26,6 +27,7 @@ class Out extends React.Component<void, void> {
       <div>
         <CalendarInput />
         <CalendarSelection />
+        <WeekSelection />
         <ErrorDisplay />
         <CalendarWeek />
       </div>

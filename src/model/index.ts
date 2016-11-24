@@ -5,7 +5,9 @@ export { TREE_TOGGLE, TreeToggle } from "./modules/tree"
 export { REQUEST_URL, SELECTION_CHANGE, CalendarsState } from "./modules/calendars"
 export { Api } from "./api"
 
-export interface IcsInterval extends IcsEntry, Interval {}
+export interface IcsInterval extends IcsEntry, Interval {
+  source: URL
+}
 
 export type URL = string
 

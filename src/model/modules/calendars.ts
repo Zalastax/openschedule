@@ -32,11 +32,12 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
   action$
     .ofType(REQUEST_URL.started.type)
     .mergeMap((action: Action<URL>) => {
-      if (store.getState().schedule[action.payload]) {
+      const url: URL = action.payload
+      if (store.getState().schedule[url]) {
         return Observable.empty()
       }
 
-      return api.proxy(action.payload)
+      return api.proxy(url)
       .map(response => {
         const ics = parseICS(response.response)
         const result = Object.values(ics)
@@ -45,16 +46,16 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
             const endMoment = moment(value.end)
             if (startMoment.isSame(endMoment) && isDayStart(startMoment)) {
               // Mutate endMoment to be end of day
-              endMoment.endOf("day")
+              endMoment.endOf('day')
             }
 
-            return Object.assign({ low: +startMoment, high: +endMoment}, value)
+            return Object.assign({ low: +startMoment, high: +endMoment, source: url}, value)
             },
           )
 
-        return REQUEST_URL.done({ params: action.payload, result })
+        return REQUEST_URL.done({ params: url, result })
       })
-      .catch((error: Error) => Observable.of(REQUEST_URL.failed({params: action.payload, error})))
+      .catch((error: Error) => Observable.of(REQUEST_URL.failed({params: url, error})))
 
       },
     )

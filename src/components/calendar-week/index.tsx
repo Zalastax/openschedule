@@ -6,40 +6,69 @@ import { connect } from "react-redux"
 import { Interval, IntervalTree } from "node-interval-tree"
 import { IcsEntry } from "ical/ical.js"
 
-import { State } from "model"
+import {
+  IcsInterval,
+  State,
+  URL,
+ } from 'model'
 
 // Set locale to ISO 8601 weeks
+import * as CSS from "./index.styl"
+
 moment.updateLocale("en", { week: { dow: 1, doy: 4 } })
 
 import DayHours from "./hours"
 
-import * as CSS from "./index.styl"
-
-export interface IcsInterval extends IcsEntry, Interval {}
 
 export interface StringInterval extends Interval {
   data: string
 }
 
-function analyzeIntervals(intervals: Interval[]) {
+interface AnalyzedIntervals {
+  [key: string]: number[]
+}
+
+function heightMap() {
   const height = [0]
   for (let i = 1; i < 288; i++) {
     height[i] = 0
   }
 
-  intervals.forEach(interval => {
-    const low = moment(interval.low)
-    const lowMins = Math.floor((low.get("hour") * 60 + low.get("minute")) / 5)
-    const high = moment(interval.high)
-    const highMins = (high.get("hour") * 60 + high.get("minute")) / 5
-    for (let i = lowMins; i < highMins; i++) {
-      height[i]++
-    }
-  })
   return height
 }
 
-const weekStart = moment().startOf("week")
+function analyzeIntervals(intervals: IcsInterval[], sources: URL[]): AnalyzedIntervals {
+  const heights: AnalyzedIntervals = {}
+  sources.forEach((url: URL) => {
+    heights[url] = heightMap()
+  })
+
+
+  intervals.forEach(interval => {
+    const height = heights[interval.source]
+    const low = moment(interval.low)
+    const lowMins = Math.floor((low.get('hour') * 60 + low.get('minute')) / 5)
+    const high = moment(interval.high)
+    const highMins = (high.get('hour') * 60 + high.get('minute')) / 5
+    for (let i = lowMins; i < highMins; i++) {
+      height[i] = 1 // currently throwing away overlapping intervals from same source
+    }
+  })
+  return heights
+}
+
+function mergeAnalyzation(ai: AnalyzedIntervals): number[] {
+  const height = heightMap()
+  Object.values(ai).forEach((hs: number[]) => {
+    for (let i = 1; i < 288; i++) {
+      height[i] += hs[i]
+    }
+  })
+
+  return height
+}
+
+const currentWeekStart = moment().startOf('week')
 
 // =============================================================================
 // Height
@@ -103,7 +132,8 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
 export interface CalendarWeekProps {
   intervals: IntervalTree<IcsInterval>
   update: number
-  max: number
+  sources: URL[]
+  weekStart: moment.Moment
 }
 
 class CalendarWeek extends React.Component<CalendarWeekProps, void> {
@@ -114,7 +144,7 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
     return (
       <div>
         <header>
-          <h1>{weekStart.format("MMMM YYYY")}</h1>
+          <h1>{this.props.weekStart.format('MMMM YYYY')}</h1>
         </header>
         <div className={CSS.calendar}>
           <ul className={CSS.weekdays}>
@@ -128,8 +158,8 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
               <CalendarDay
                 key={date}
                 date={date}
-                heights={analyzeIntervals(intervals)}
-                max={this.props.max}
+                heights={mergeAnalyzation(analyzeIntervals(intervals, this.props.sources))}
+                max={this.props.sources.length}
               />)
           }
           </ul>
@@ -141,8 +171,8 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
 
   private getDays() {
     return [0, 1, 2, 3, 4, 5, 6]
-      .map(n => moment(weekStart).add(n, "day"))
-      .map((d): [number, IcsInterval[]] => [d.date(), this.props.intervals.search(+d, +d.endOf("day"))])
+      .map(n => moment(this.props.weekStart).add(n, 'day'))
+      .map((d): [number, IcsInterval[]] => [d.date(), this.props.intervals.search(+d, +d.endOf('day'))])
   }
 }
 
@@ -150,7 +180,8 @@ function mapStateToProps(state: State): CalendarWeekProps {
   return {
     intervals: state.tree.tree,
     update: state.tree.update,
-    max: Object.keys(state.schedule).length,
+    sources: Object.keys(state.schedule),
+    weekStart: moment(currentWeekStart).add(state.date.offset, 'week'),
   }
 }
 
