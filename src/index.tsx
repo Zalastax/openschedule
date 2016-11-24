@@ -10,7 +10,7 @@ import "./index.styl"
 
 import CalendarWeek from "components/calendar-week"
 import CalendarInput from "components/input"
-import CalendarSelection from "components/selection"
+import CalendarSelection from "components/calendar-selection"
 import ErrorDisplay from "components/errors"
 import WeekSelection from 'components/week-selection'
 

@@ -1,9 +1,13 @@
-import * as React from "react"
-import { connect } from "react-redux"
-import { Dispatch } from "redux"
-import { State } from "model"
+import { State } from 'model'
+import * as React from 'react'
+import { connect } from 'react-redux'
+import { Dispatch } from 'redux'
 
-import { SELECTION_CHANGE, CalendarsState, SelectionChange } from "model"
+import {
+  CalendarsState,
+  SELECTION_CHANGE,
+  SelectionChange,
+} from 'model'
 
 interface SelectionProps {
   name: string
@@ -28,7 +32,7 @@ class Selection extends React.Component<SelectionProps, void> {
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.currentTarget
+    const target = event.target
     this.props.onChange({
       name: this.props.name,
       value: !!target.checked,
