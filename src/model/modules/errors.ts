@@ -1,17 +1,18 @@
-import { Observable } from "rxjs"
-import { Action as ReduxAction, MiddlewareAPI } from "redux"
+import { Action as ReduxAction, MiddlewareAPI } from 'redux'
+import { ActionsObservable } from 'redux-observable'
+import { Observable } from 'rxjs'
+
 import {
   State,
-} from "model"
-import actionCreator, { isType, Action } from "./actionCreator"
-import { ActionsObservable } from "redux-observable"
+} from 'model'
+import actionCreator, { Action, isType } from './actionCreator'
 
 export interface ErrorsState {
   latestError?: string,
 }
 
-export const NEW_ERROR = actionCreator<string>("NEW_ERROR")
-export const ERROR_TIMEOUT = actionCreator("ERROR_TIMEOUT")
+export const NEW_ERROR = actionCreator<string>('NEW_ERROR')
+export const ERROR_TIMEOUT = actionCreator('ERROR_TIMEOUT')
 // Add to this object to add more error translations
 export const errorTranslators: ET = {}
 

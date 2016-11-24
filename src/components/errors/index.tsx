@@ -1,6 +1,6 @@
-import * as React from "react"
-import { connect } from "react-redux"
-import { State } from "model"
+import { State } from 'model'
+import * as React from 'react'
+import { connect } from 'react-redux'
 
 export interface ErrorDisplayProps {
   latestError: string | undefined

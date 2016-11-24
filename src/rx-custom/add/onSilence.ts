@@ -1,7 +1,7 @@
-import { Observable } from "rxjs"
-import { onSilence } from "../operator/onSilence"
+import { Observable } from 'rxjs'
+import { onSilence } from '../operator/onSilence'
 
-declare module "rxjs/Observable" {
+declare module 'rxjs/Observable' {
     interface Observable<T> {
         onSilence: typeof onSilence
     }

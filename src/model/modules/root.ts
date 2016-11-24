@@ -1,10 +1,11 @@
-import { combineReducers } from "redux"
-import { combineEpics } from "redux-observable"
-import { requestUrlEpic, schedule, CalendarsState } from "./calendars"
-import { tree, TreeState, toggleEpic } from "./tree"
-import { errors, ErrorsState, errorsEpic } from "./errors"
-import { Api } from "model"
+import { combineReducers } from 'redux'
+import { combineEpics } from 'redux-observable'
+
+import { Api } from 'model'
+import { CalendarsState, requestUrlEpic, schedule } from './calendars'
 import { date, DateState } from './date'
+import { errors, errorsEpic, ErrorsState } from './errors'
+import { toggleEpic, tree, TreeState } from './tree'
 
 const api = new Api()
 

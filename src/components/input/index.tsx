@@ -1,14 +1,14 @@
-import * as React from "react"
-import { connect } from "react-redux"
-import { Dispatch } from "redux"
-import { State, REQUEST_URL, URL } from "model"
+import { REQUEST_URL, State, URL } from 'model'
+import * as React from 'react'
+import { connect } from 'react-redux'
+import { Dispatch } from 'redux'
 
 export interface CalendarInputProps {
   onGo: (url: URL) => void
 }
 
 // tslint:disable-next-line
-const testCal = "https://se.timeedit.net/web/chalmers/db1/public/ri65YXQ2502Z51Qv9X0536Q6y6Y090665YQ5Y5gQ9075763ZZ756n103.ics"
+const testCal = 'https://se.timeedit.net/web/chalmers/db1/public/ri617Q7QYn4ZQ4Q514854875yZZQ5155.ics'
 
 export class CalendarInput extends React.Component<CalendarInputProps, void> {
   private input: HTMLInputElement

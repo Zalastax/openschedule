@@ -1,10 +1,9 @@
-import * as React from "react"
-import compare = require("react-addons-shallow-compare")
-import * as moment from "moment"
-import { connect } from "react-redux"
+import * as React from 'react'
+import compare = require('react-addons-shallow-compare')
+import * as moment from 'moment'
+import { connect } from 'react-redux'
 
-import { Interval, IntervalTree } from "node-interval-tree"
-import { IcsEntry } from "ical/ical.js"
+import { Interval, IntervalTree } from 'node-interval-tree'
 
 import {
   IcsInterval,
@@ -13,12 +12,11 @@ import {
  } from 'model'
 
 // Set locale to ISO 8601 weeks
-import * as CSS from "./index.styl"
+moment.updateLocale('en', { week: { dow: 1, doy: 4 } })
 
-moment.updateLocale("en", { week: { dow: 1, doy: 4 } })
+import DayHours from './hours'
 
-import DayHours from "./hours"
-
+import * as CSS from './index.styl'
 
 export interface StringInterval extends Interval {
   data: string
@@ -42,7 +40,6 @@ function analyzeIntervals(intervals: IcsInterval[], sources: URL[]): AnalyzedInt
   sources.forEach((url: URL) => {
     heights[url] = heightMap()
   })
-
 
   intervals.forEach(interval => {
     const height = heights[interval.source]

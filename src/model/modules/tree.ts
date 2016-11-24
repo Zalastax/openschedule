@@ -1,14 +1,14 @@
-import { Action as ReduxAction, MiddlewareAPI } from "redux"
 import {
   IcsInterval,
-  State,
-  SelectionChange,
   REQUEST_URL,
   SELECTION_CHANGE,
-} from "model"
-import actionCreator, { isType, Action } from "./actionCreator"
-import { ActionsObservable } from "redux-observable"
-import { IntervalTree } from "node-interval-tree"
+  SelectionChange,
+  State,
+} from 'model'
+import { IntervalTree } from 'node-interval-tree'
+import { Action as ReduxAction, MiddlewareAPI } from 'redux'
+import { ActionsObservable } from 'redux-observable'
+import actionCreator, { Action, isType } from './actionCreator'
 
 export interface TreeState {
   tree: IntervalTree<IcsInterval>,
@@ -25,7 +25,7 @@ export interface TreeToggle {
   sc: IcsInterval[],
 }
 
-export const TREE_TOGGLE = actionCreator<TreeToggle>("TREE_TOGGLE")
+export const TREE_TOGGLE = actionCreator<TreeToggle>('TREE_TOGGLE')
 
 // =============================================================================
 // Epics

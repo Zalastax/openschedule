@@ -1,9 +1,9 @@
-import { Operator } from "rxjs/Operator"
-import { Subscriber } from "rxjs/Subscriber"
-import { Scheduler } from "rxjs/Scheduler"
-import { Subscription, TeardownLogic } from "rxjs/Subscription"
-import { async } from "rxjs/scheduler/async"
-import { Observable } from "rxjs/Observable"
+import { Observable } from 'rxjs/Observable'
+import { Operator } from 'rxjs/Operator'
+import { Scheduler } from 'rxjs/Scheduler'
+import { async } from 'rxjs/scheduler/async'
+import { Subscriber } from 'rxjs/Subscriber'
+import { Subscription, TeardownLogic } from 'rxjs/Subscription'
 
 export function onSilence<T>(this: Observable<T>,
                                 duration: number,

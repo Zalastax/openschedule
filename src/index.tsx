@@ -1,17 +1,17 @@
-import "./setup"
+import './setup'
 
-import * as React from "react"
-import * as ReactDOM from "react-dom"
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 
-import { Provider } from "react-redux"
-import configureStore from "model/configureStore"
+import configureStore from 'model/configureStore'
+import { Provider } from 'react-redux'
 
-import "./index.styl"
+import './index.styl'
 
-import CalendarWeek from "components/calendar-week"
-import CalendarInput from "components/input"
-import CalendarSelection from "components/calendar-selection"
-import ErrorDisplay from "components/errors"
+import CalendarSelection from 'components/calendar-selection'
+import CalendarWeek from 'components/calendar-week'
+import ErrorDisplay from 'components/errors'
+import CalendarInput from 'components/input'
 import WeekSelection from 'components/week-selection'
 
 const store = configureStore({})
@@ -39,5 +39,5 @@ ReactDOM.render(
   <Provider store={store}>
     <Out />
   </Provider>,
-  document.getElementById("content") as HTMLElement,
+  document.getElementById('content') as HTMLElement,
 )

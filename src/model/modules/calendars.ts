@@ -1,11 +1,17 @@
-import { Action as ReduxAction, MiddlewareAPI } from "redux"
-import { Observable } from "rxjs"
-import { ActionsObservable } from "redux-observable"
-import { IcsInterval, URL, SelectionChange, State, Api } from "model"
-import { errorTranslators } from "./errors"
-import actionCreator, { isType, Action, Failure } from "./actionCreator"
-import { parseICS, IcsEntry } from "ical/ical.js"
-import * as moment from "moment"
+import { IcsEntry, parseICS } from 'ical/ical.js'
+import {
+  Api,
+  IcsInterval,
+  SelectionChange,
+  State,
+  URL,
+} from 'model'
+import * as moment from 'moment'
+import { Action as ReduxAction, MiddlewareAPI } from 'redux'
+import { ActionsObservable } from 'redux-observable'
+import { Observable } from 'rxjs'
+import actionCreator, { Action, Failure, isType } from './actionCreator'
+import { errorTranslators } from './errors'
 
 export interface CalendarsState {
   [key: string]: {
@@ -14,14 +20,14 @@ export interface CalendarsState {
   }
 }
 
-export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>("SCHEDULE_REQUEST_URL")
-export const SELECTION_CHANGE = actionCreator<SelectionChange>("SELECTION_CHANGE")
+export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>('SCHEDULE_REQUEST_URL')
+export const SELECTION_CHANGE = actionCreator<SelectionChange>('SELECTION_CHANGE')
 
 errorTranslators[REQUEST_URL.failed.type] = (x: Action<Failure<URL, Error>>) =>
-  `Failed to get ${x.payload.params}: ${JSON.stringify(x.payload.error, ["message", "arguments", "type", "name"])}`
+  `Failed to get ${x.payload.params}: ${JSON.stringify(x.payload.error, ['message', 'arguments', 'type', 'name'])}`
 
 function isDayStart(m: moment.Moment): boolean {
-  return m.isSame(moment(m).startOf("day"))
+  return m.isSame(moment(m).startOf('day'))
 }
 
 // =============================================================================
