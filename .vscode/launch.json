@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${file}",
+            "stopOnEntry": false,
+            "sourceMaps": true,
+            "outDir": "${workspaceRoot}/lib"
+
+        },
+        {
+            "name": "Mochaa",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceRoot}",
+            "program": "${workspaceRoot}/test/runner.js",
+            "args": ["${file}"],
+            "stopOnEntry": true,
+            "sourceMaps": false,
+            "console": "integratedTerminal"
+        }
+    ]
+}

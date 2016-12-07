@@ -25,6 +25,10 @@
        "allow-leading-underscore"
      ]
   },
+  "jsRules": {
+    "semicolon": [true, "never"],
+    "quotemark": [true, "single", "avoid-escape"]
+  },
   "rulesDirectory": [
     /*
      * A list of relative or absolute paths to directories that contain custom rules.

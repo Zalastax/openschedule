@@ -1,5 +1,5 @@
 import 'mocha'
-import '../../src/setup'
+import '../../src/setup-rx'
 
 
 describe('requestUrlEpic', () => {

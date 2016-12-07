@@ -4,6 +4,7 @@ import * as moment from 'moment'
 import { connect } from 'react-redux'
 
 import { Interval, IntervalTree } from 'node-interval-tree'
+import { fillEmpty, flatten, IntervalSplit } from 'interval'
 
 import {
   IcsInterval,
@@ -22,47 +23,8 @@ export interface StringInterval extends Interval {
   data: string
 }
 
-interface AnalyzedIntervals {
-  [key: string]: number[]
-}
-
-function heightMap() {
-  const height = [0]
-  for (let i = 1; i < 288; i++) {
-    height[i] = 0
-  }
-
-  return height
-}
-
-function analyzeIntervals(intervals: IcsInterval[], sources: URL[]): AnalyzedIntervals {
-  const heights: AnalyzedIntervals = {}
-  sources.forEach((url: URL) => {
-    heights[url] = heightMap()
-  })
-
-  intervals.forEach(interval => {
-    const height = heights[interval.source]
-    const low = moment(interval.low)
-    const lowMins = Math.floor((low.get('hour') * 60 + low.get('minute')) / 5)
-    const high = moment(interval.high)
-    const highMins = (high.get('hour') * 60 + high.get('minute')) / 5
-    for (let i = lowMins; i < highMins; i++) {
-      height[i] = 1 // currently throwing away overlapping intervals from same source
-    }
-  })
-  return heights
-}
-
-function mergeAnalyzation(ai: AnalyzedIntervals): number[] {
-  const height = heightMap()
-  Object.values(ai).forEach((hs: number[]) => {
-    for (let i = 1; i < 288; i++) {
-      height[i] += hs[i]
-    }
-  })
-
-  return height
+function clamp(min: number, max: number, value: number) {
+  return Math.max(min, Math.min(max, value))
 }
 
 const currentWeekStart = moment().startOf('week')
@@ -72,7 +34,7 @@ const currentWeekStart = moment().startOf('week')
 // =============================================================================
 
 interface HeightProps {
-  height: number
+  split: IntervalSplit<IcsInterval>
   max: number
 }
 
@@ -80,8 +42,10 @@ class Height extends React.Component<HeightProps, void> {
   public render() {
     return (
       <div
-        className={CSS.height}
-        style={{ backgroundColor: this.color(this.props.height, this.props.max) }}
+        style={{
+          backgroundColor: this.color(this.props.split.overlapping.length, this.props.max),
+          height: this.height()
+        }}
       />
     )
   }
@@ -90,7 +54,12 @@ class Height extends React.Component<HeightProps, void> {
     if (max < 1) {
       return `hsl(120, 100%, 50%)`
     }
-    return `hsl(${120 - (v / max) * 120}, 100%, 50%)`
+    return `hsl(${120 - clamp(0, 1, v / max) * 120}, 100%, 50%)`
+  }
+
+  private height() {
+    const split = this.props.split
+    return (split.high - split.low) / (1000 * 60 * 2)
   }
 }
 
@@ -100,7 +69,7 @@ class Height extends React.Component<HeightProps, void> {
 
 interface CalendarDayProps {
   date: number
-  heights: number[]
+  heights: IntervalSplit<IcsInterval>[]
   max: number
 }
 
@@ -114,7 +83,7 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
       <div className={CSS.otherDays}>
         <div className={CSS.date}>{ this.props.date }</div>
         {
-          this.props.heights.map((a, i) => <Height height={a} key={i} max={this.props.max} />)
+          this.props.heights.map((a, i) => <Height split={a} key={i} max={this.props.max} />)
         }
         <DayHours />
       </div>
@@ -137,6 +106,7 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
 
   public render() {
     const days = this.getDays()
+    console.log(days)
 
     return (
       <div>
@@ -151,11 +121,11 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
           </ul>
           <ul className={CSS.days}>
           {
-            days.map(([date, intervals]) =>
+            days.map(([date, splits]) =>
               <CalendarDay
                 key={date}
                 date={date}
-                heights={mergeAnalyzation(analyzeIntervals(intervals, this.props.sources))}
+                heights={splits}
                 max={this.props.sources.length}
               />)
           }
@@ -167,9 +137,15 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
   }
 
   private getDays() {
+
     return [0, 1, 2, 3, 4, 5, 6]
       .map(n => moment(this.props.weekStart).add(n, 'day'))
-      .map((d): [number, IcsInterval[]] => [d.date(), this.props.intervals.search(+d, +d.endOf('day'))])
+      .map((d): [number, IntervalSplit<IcsInterval>[]] => {
+        const date = d.date()
+        const start = +d
+        const end = +d.endOf('day')
+        return [date, fillEmpty(flatten(this.props.intervals, start, end), start, end)]
+      })
   }
 }
 
