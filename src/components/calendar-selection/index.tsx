@@ -55,12 +55,12 @@ export class CalendarSelection extends React.Component<CalendarSelectionProps, v
     return (
       <ul>
         {
-          Object.keys(this.props.schedule).map(name => (
+          Object.keys(this.props.schedule.byURL).map(name => (
             <Selection
               key={name}
               name={name}
               onChange={this.props.selection}
-              selected={this.props.schedule[name].selected}
+              selected={this.props.schedule.byURL[name].selected}
             />
           ))
         }

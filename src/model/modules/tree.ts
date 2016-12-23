@@ -35,13 +35,13 @@ export const toggleEpic = (action$: ActionsObservable<SelectionChange>, store: M
   action$
     .ofType(SELECTION_CHANGE.type)
     .map((action: Action<SelectionChange>) => {
-      const sc = store.getState().schedule[action.payload.name]
+      const sc = store.getState().schedule.byURL[action.payload.name]
       if (!sc) {
         return
       }
       return TREE_TOGGLE({
         on: action.payload.value,
-        sc: sc.interval,
+        sc: sc.intervals,
       })
     })
     .filterUndefined()

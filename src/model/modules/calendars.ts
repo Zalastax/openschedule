@@ -14,10 +14,13 @@ import actionCreator, { Action, Failure, isType } from './actionCreator'
 import { errorTranslators } from './errors'
 
 export interface CalendarsState {
-  [key: string]: {
-    interval: IcsInterval[],
-    selected: boolean,
+  byURL: {
+    [key: string]: {
+      intervals: IcsInterval[],
+      selected: boolean,
+    }
   }
+  selected: string[]
 }
 
 export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>('SCHEDULE_REQUEST_URL')
@@ -39,7 +42,7 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
     .ofType(REQUEST_URL.started.type)
     .mergeMap((action: Action<URL>) => {
       const url: URL = action.payload
-      if (store.getState().schedule[url]) {
+      if (store.getState().schedule.byURL[url]) {
         return Observable.empty()
       }
 
@@ -70,26 +73,45 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
 // Reducer
 // =============================================================================
 
-export const schedule = (state: CalendarsState = { }, action: ReduxAction): CalendarsState => {
+const defaultState: CalendarsState = {
+  byURL: {},
+  selected: []
+}
+
+export const schedule = (state: CalendarsState = defaultState, action: ReduxAction): CalendarsState => {
   let newState = state
   if (isType(action, REQUEST_URL.done)) {
     const payload = action.payload
-    newState = Object.assign({}, newState, {
+    const byURL = Object.assign({}, state.byURL, {
       [payload.params]: {
-        interval: payload.result,
+        intervals: payload.result,
         selected: true,
       },
     })
+    newState = {
+      byURL,
+      selected: [...state.selected, payload.params]
+    }
   } else if (isType(action, SELECTION_CHANGE)) {
     const payload = action.payload
-    const interval = state[payload.name].interval
-    if (interval) {
-      newState = Object.assign({}, newState, {
+    const intervals = state.byURL[payload.name].intervals
+    if (intervals) {
+      const byURL = Object.assign({}, state.byURL, {
         [payload.name]: {
-          interval,
+          intervals,
           selected: payload.value,
         },
       })
+      let selected = state.selected
+      if (payload.value) {
+        selected = [...selected, payload.name]
+      } else {
+        selected = selected.filter(v => v !== payload.name)
+      }
+      newState = {
+        byURL,
+        selected,
+      }
     }
   }
 

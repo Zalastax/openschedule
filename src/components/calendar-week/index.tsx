@@ -1,7 +1,9 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 import compare = require('react-addons-shallow-compare')
 import * as moment from 'moment'
 import { connect } from 'react-redux'
+import { uniqBy } from 'lodash'
 
 import { Interval, IntervalTree } from 'node-interval-tree'
 import { fillEmpty, flatten, IntervalSplit } from 'interval'
@@ -36,18 +38,25 @@ const currentWeekStart = moment().startOf('week')
 interface HeightProps {
   split: IntervalSplit<IcsInterval>
   max: number
+  onClick: (split: IntervalSplit<IcsInterval>) => void
 }
 
 class Height extends React.Component<HeightProps, void> {
   public render() {
+    const uniqueCount = uniqBy(this.props.split.overlapping, v => v.source).length
     return (
       <div
         style={{
-          backgroundColor: this.color(this.props.split.overlapping.length, this.props.max),
+          backgroundColor: this.color(uniqueCount, this.props.max),
           height: this.height()
         }}
+        onClick={this.onClick}
       />
     )
+  }
+
+  onClick = () => {
+    this.props.onClick(this.props.split)
   }
 
   private color(v: number, max: number) {
@@ -64,6 +73,30 @@ class Height extends React.Component<HeightProps, void> {
 }
 
 // =============================================================================
+// IntervalSplitC
+// =============================================================================
+
+interface IntervalSplitCProps {
+  split: IntervalSplit<IcsInterval>
+}
+
+class IntervalSplitC extends React.Component<IntervalSplitCProps, void> {
+  public render() {
+    return (
+      <div>
+        {moment(this.props.split.low).format()} - {moment(this.props.split.high).format()}:
+        <ul>
+        {
+          this.props.split.overlapping.map(v => <li key={v.source}>{v.source}</li>)
+        }
+        </ul>
+      </div>
+    )
+  }
+}
+
+
+// =============================================================================
 // CalendarDay
 // =============================================================================
 
@@ -71,6 +104,7 @@ interface CalendarDayProps {
   date: number
   heights: IntervalSplit<IcsInterval>[]
   max: number
+  onSplitClick: (split: IntervalSplit<IcsInterval>) => void
 }
 
 class CalendarDay extends React.Component<CalendarDayProps, void> {
@@ -83,11 +117,53 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
       <div className={CSS.otherDays}>
         <div className={CSS.date}>{ this.props.date }</div>
         {
-          this.props.heights.map((a, i) => <Height split={a} key={i} max={this.props.max} />)
+          this.props.heights.map((a, i) => <Height split={a} key={i} max={this.props.max} onClick={this.props.onSplitClick} />)
         }
         <DayHours />
       </div>
     )
+  }
+}
+
+// =============================================================================
+// clickOutsideHOC
+// =============================================================================
+
+interface ClickOutside {
+  onClickOutside: (e: MouseEvent) => void
+}
+
+
+function clickOutside<T>(
+  Comp: new(props?: T) => React.Component<T, React.ComponentState> & ClickOutside
+) {
+  return class ClickOutsideHOC extends React.Component<T, void> {
+    private wrapped: React.Component<T, React.ComponentState> & ClickOutside
+
+    componentDidMount() {
+      document.addEventListener('click', this.handleClickOutside, true);
+    }
+
+    componentWillUnmount() {
+      document.removeEventListener('click', this.handleClickOutside, true);
+    }
+
+    private handleClickOutside = (e: MouseEvent) => {
+      const node = ReactDOM.findDOMNode(this.wrapped)
+      if (node != null) {
+        if (node.contains(e.target as Node)) {
+          this.wrapped.onClickOutside(e)
+        }
+      }
+    }
+
+    private onRef = (n: React.Component<T, React.ComponentState> & ClickOutside) => {
+      this.wrapped = n
+    }
+
+    render() {
+      return <Comp {...this.props} ref={this.onRef} />
+    }
   }
 }
 
@@ -102,14 +178,22 @@ export interface CalendarWeekProps {
   weekStart: moment.Moment
 }
 
-class CalendarWeek extends React.Component<CalendarWeekProps, void> {
+interface CalendarWeekState {
+  focusedSplit?: IntervalSplit<IcsInterval>
+}
 
-  public render() {
+class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState> implements ClickOutside {
+
+  state: CalendarWeekState = {}
+
+  render() {
     const days = this.getDays()
-    console.log(days)
 
     return (
       <div>
+        {
+          this.state.focusedSplit && <IntervalSplitC split={this.state.focusedSplit} />
+        }
         <header>
           <h1>{this.props.weekStart.format('MMMM YYYY')}</h1>
         </header>
@@ -127,6 +211,7 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
                 date={date}
                 heights={splits}
                 max={this.props.sources.length}
+                onSplitClick={this.onSplitClick}
               />)
           }
           </ul>
@@ -134,6 +219,18 @@ class CalendarWeek extends React.Component<CalendarWeekProps, void> {
         </div>
       </div>
     )
+  }
+
+  onClickOutside() {
+    this.setState({
+      focusedSplit: undefined,
+    })
+  }
+
+  onSplitClick = (focusedSplit: IntervalSplit<IcsInterval>) => {
+    this.setState({
+      focusedSplit,
+    })
   }
 
   private getDays() {
@@ -153,9 +250,9 @@ function mapStateToProps(state: State): CalendarWeekProps {
   return {
     intervals: state.tree.tree,
     update: state.tree.update,
-    sources: Object.keys(state.schedule),
+    sources: state.schedule.selected,
     weekStart: moment(currentWeekStart).add(state.date.offset, 'week'),
   }
 }
 
-export default connect(mapStateToProps)(CalendarWeek)
+export default connect(mapStateToProps)(clickOutside(CalendarWeek))
