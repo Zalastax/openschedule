@@ -48,14 +48,14 @@ class Height extends React.Component<HeightProps, void> {
       <div
         style={{
           backgroundColor: this.color(uniqueCount, this.props.max),
-          height: this.height()
+          height: this.height(),
         }}
         onClick={this.onClick}
       />
     )
   }
 
-  onClick = () => {
+  private onClick = () => {
     this.props.onClick(this.props.split)
   }
 
@@ -95,7 +95,6 @@ class IntervalSplitC extends React.Component<IntervalSplitCProps, void> {
   }
 }
 
-
 // =============================================================================
 // CalendarDay
 // =============================================================================
@@ -117,7 +116,8 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
       <div className={CSS.otherDays}>
         <div className={CSS.date}>{ this.props.date }</div>
         {
-          this.props.heights.map((a, i) => <Height split={a} key={i} max={this.props.max} onClick={this.props.onSplitClick} />)
+          this.props.heights.map((a, i) =>
+            <Height split={a} key={i} max={this.props.max} onClick={this.props.onSplitClick} />)
         }
         <DayHours />
       </div>
@@ -129,42 +129,47 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
 // clickOutsideHOC
 // =============================================================================
 
-interface ClickOutside {
-  onClickOutside: (e: MouseEvent) => void
-}
+function clickOutsideMulti<T, C extends React.Component<T, React.ComponentState>>(
+  onClickOutside: (this: C, e: MouseEvent) => void,
+  getNodes: (this: C) => Element[]) {
+    return(COMPONENT: new(props?: T) => C) =>
+    class ClickOutsideHOC extends React.Component<T, void> {
+      private wrapped: C
 
+      constructor(props: T) {
+        super(props)
+      }
 
-function clickOutside<T>(
-  Comp: new(props?: T) => React.Component<T, React.ComponentState> & ClickOutside
-) {
-  return class ClickOutsideHOC extends React.Component<T, void> {
-    private wrapped: React.Component<T, React.ComponentState> & ClickOutside
+      public componentDidMount() {
+        document.addEventListener('click', this.handleClickOutside, true)
+      }
 
-    componentDidMount() {
-      document.addEventListener('click', this.handleClickOutside, true);
-    }
+      public componentWillUnmount() {
+        document.removeEventListener('click', this.handleClickOutside, true)
+      }
 
-    componentWillUnmount() {
-      document.removeEventListener('click', this.handleClickOutside, true);
-    }
+      public render() {
+        return <COMPONENT {...this.props} ref={this.onRef} />
+      }
 
-    private handleClickOutside = (e: MouseEvent) => {
-      const node = ReactDOM.findDOMNode(this.wrapped)
-      if (node != null) {
-        if (node.contains(e.target as Node)) {
-          this.wrapped.onClickOutside(e)
+      private handleClickOutside = (e: MouseEvent) => {
+        const nodes = getNodes.call(this.wrapped) as Element[]
+        if (!nodes.some(node => node.contains(e.target as Node))) {
+          onClickOutside.call(this.wrapped, e)
         }
       }
-    }
 
-    private onRef = (n: React.Component<T, React.ComponentState> & ClickOutside) => {
-      this.wrapped = n
-    }
-
-    render() {
-      return <Comp {...this.props} ref={this.onRef} />
+      private onRef = (n: C) => {
+        this.wrapped = n
+      }
     }
   }
+
+function clickOutside<T, C extends React.Component<T, React.ComponentState>>(
+  onClickOutside: (this: C, e: MouseEvent) => void) {
+  return clickOutsideMulti<T, C>(onClickOutside, function (this: C) {
+    return [ReactDOM.findDOMNode(this)].filter(n => n)
+  })
 }
 
 // =============================================================================
@@ -182,11 +187,11 @@ interface CalendarWeekState {
   focusedSplit?: IntervalSplit<IcsInterval>
 }
 
-class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState> implements ClickOutside {
+class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState> {
 
-  state: CalendarWeekState = {}
+  public state: CalendarWeekState = {}
 
-  render() {
+  public render() {
     const days = this.getDays()
 
     return (
@@ -221,13 +226,13 @@ class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState>
     )
   }
 
-  onClickOutside() {
+  public onClickOutside(this: CalendarWeek) {
     this.setState({
       focusedSplit: undefined,
     })
   }
 
-  onSplitClick = (focusedSplit: IntervalSplit<IcsInterval>) => {
+  public onSplitClick = (focusedSplit: IntervalSplit<IcsInterval>) => {
     this.setState({
       focusedSplit,
     })
@@ -255,4 +260,6 @@ function mapStateToProps(state: State): CalendarWeekProps {
   }
 }
 
-export default connect(mapStateToProps)(clickOutside(CalendarWeek))
+const hoc = clickOutside<CalendarWeekProps, CalendarWeek>(CalendarWeek.prototype.onClickOutside)
+
+export default connect(mapStateToProps)(hoc(CalendarWeek))

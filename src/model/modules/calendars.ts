@@ -18,7 +18,7 @@ export interface CalendarsState {
     [key: string]: {
       intervals: IcsInterval[],
       selected: boolean,
-    }
+    },
   }
   selected: string[]
 }
@@ -75,7 +75,7 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
 
 const defaultState: CalendarsState = {
   byURL: {},
-  selected: []
+  selected: [],
 }
 
 export const schedule = (state: CalendarsState = defaultState, action: ReduxAction): CalendarsState => {
@@ -90,7 +90,7 @@ export const schedule = (state: CalendarsState = defaultState, action: ReduxActi
     })
     newState = {
       byURL,
-      selected: [...state.selected, payload.params]
+      selected: [...state.selected, payload.params],
     }
   } else if (isType(action, SELECTION_CHANGE)) {
     const payload = action.payload

@@ -32,7 +32,7 @@ class Selection extends React.Component<SelectionProps, void> {
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.target
+    const target = event.currentTarget
     this.props.onChange({
       name: this.props.name,
       value: !!target.checked,
