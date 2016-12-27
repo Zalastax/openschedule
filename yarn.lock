@@ -165,6 +165,10 @@
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@types/shallowequal/-/shallowequal-0.2.1.tgz#902f9f09c86193a9b63c145cbde962c1a6a58e65"
 
+"@types/tether@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@types/tether/-/tether-1.4.0.tgz#163da2117430b3a1b89550cc0b82255c036a87d2"
+
 abab@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/abab/-/abab-1.0.3.tgz#b81de5f7274ec4e756d797cd834f303642724e5d"
@@ -4842,6 +4846,10 @@ tar@~2.2.1:
     block-stream "*"
     fstream "^1.0.2"
     inherits "2"
+
+tether@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/tether/-/tether-1.4.0.tgz#0f9fa171f75bf58485d8149e94799d7ae74d1c1a"
 
 timed-out@^3.0.0:
   version "3.1.0"

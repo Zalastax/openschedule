@@ -18,6 +18,7 @@
      "linebreak-style": [true, "LF"],
      "max-classes-per-file": [false],
      "object-literal-sort-keys": false,
+     "only-arrow-functions": [false],
      "ordered-imports": [false],
      "quotemark": [true, "single", "avoid-escape"],
      "semicolon": [true, "never"],

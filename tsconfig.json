@@ -9,7 +9,8 @@
         "jsx": "react",
         "module": "commonjs",
         "moduleResolution": "node",
-        "baseUrl": "./src"
+        "baseUrl": "./src",
+        "target": "es5"
     },
     "exclude": [
         "node_modules",

@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import compare = require('react-addons-shallow-compare')
 import * as moment from 'moment'
 import { connect } from 'react-redux'
-import { uniqBy } from 'lodash'
+import { uniqBy, mapValues } from 'lodash'
 
 import { Interval, IntervalTree } from 'node-interval-tree'
 import { fillEmpty, flatten, IntervalSplit } from 'interval'
@@ -126,44 +126,80 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
 }
 
 // =============================================================================
+// HOC
+// =============================================================================
+
+interface Wrapper<C> {
+  wrapped: C
+}
+
+function baseHoc<PT, PP, T, C extends React.Component<T, React.ComponentState>>(
+  prot: PT, prop: PP) {
+    return (COMPONENT: new(props?: T) => C) => {
+      class HOC extends React.Component<T, void> implements Wrapper<C> {
+        public wrapped: C
+
+        constructor(props: T) {
+          super(props)
+          Object.assign(this, mapValues(prop, p => p.bind(this)))
+        }
+
+        public render() {
+          return <COMPONENT {...this.props} ref={this.onRef} />
+        }
+
+        private onRef = (n: C) => {
+          this.wrapped = n
+        }
+      }
+
+      Object.assign(HOC.prototype, prot)
+
+      return HOC as (typeof HOC) & PT & PP
+    }
+}
+
+// =============================================================================
 // clickOutsideHOC
 // =============================================================================
 
 function clickOutsideMulti<T, C extends React.Component<T, React.ComponentState>>(
   onClickOutside: (this: C, e: MouseEvent) => void,
   getNodes: (this: C) => Element[]) {
-    return(COMPONENT: new(props?: T) => C) =>
-    class ClickOutsideHOC extends React.Component<T, void> {
-      private wrapped: C
 
-      constructor(props: T) {
-        super(props)
-      }
+    interface Prot {
+      componentDidMount: () => void
+      componentWillUnmount: () => void
+    }
 
-      public componentDidMount() {
+    interface Prop {
+      handleClickOutside: (e: MouseEvent) => void
+    }
+
+    type Out = Wrapper<C> & Prot & Prop
+
+    const prot = {
+      componentDidMount(this: Out) {
         document.addEventListener('click', this.handleClickOutside, true)
-      }
+      },
 
-      public componentWillUnmount() {
+      componentWillUnmount(this: Out) {
         document.removeEventListener('click', this.handleClickOutside, true)
-      }
+      },
+    }
 
-      public render() {
-        return <COMPONENT {...this.props} ref={this.onRef} />
-      }
-
-      private handleClickOutside = (e: MouseEvent) => {
+    const prop = {
+      handleClickOutside (this: Out, e: MouseEvent) {
         const nodes = getNodes.call(this.wrapped) as Element[]
         if (!nodes.some(node => node.contains(e.target as Node))) {
           onClickOutside.call(this.wrapped, e)
         }
-      }
-
-      private onRef = (n: C) => {
-        this.wrapped = n
-      }
+      },
     }
-  }
+
+    const ret = baseHoc<Prot, Prop, T, C>(prot, prop)
+    return ret
+}
 
 function clickOutside<T, C extends React.Component<T, React.ComponentState>>(
   onClickOutside: (this: C, e: MouseEvent) => void) {

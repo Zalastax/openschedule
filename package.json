@@ -45,6 +45,7 @@
     "redux-typescript-actions": "^1.1.0",
     "rxjs": "^5.0.0-rc.1",
     "shallowequal": "^0.2.2",
+    "tether": "^1.4.0",
     "typescript-collections": "^1.2.3"
   },
   "devDependencies": {
