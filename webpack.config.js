@@ -14,7 +14,6 @@ module.exports = function (maybeEnv) {
 
   let devtool = 'cheap-module-eval-source-map'
 
-
   const publicPath = env.production ? undefined : '/'
   const sourceMap = !env.disableSourceMap
   const serverUrl = env.firebase ? 'https://quiet-headland-30358.herokuapp.com' : 'http://localhost:3000'
@@ -41,7 +40,7 @@ module.exports = function (maybeEnv) {
     loader: 'style-loader',
     query: {
       sourceMap,
-    }
+    },
   }
   let wrapCss = loaders => [styleLoader, ...loaders]
 
@@ -60,34 +59,34 @@ module.exports = function (maybeEnv) {
           cssLoader: {
             customInterpolateName: function (originalName) {
               let newName = nameCache[originalName]
-              if (newName == undefined) {
+              if (newName == null) {
                 newName = nameIt.next().value
                 nameCache[originalName] = newName
               }
               return newName
             },
             sourceMap,
-          }
-        }
+          },
+        },
       }),
       new webpack.optimize.UglifyJsPlugin({ sourceMap }),
       new ExtractTextPlugin({
-        filename: 'styles-[hash].css',
         allChunks: true,
+        filename: 'styles-[hash].css',
       })
     )
 
     wrapCss = loader => ExtractTextPlugin.extract({
       fallbackLoader: styleLoader,
-      loader
+      loader,
     })
 
     devtool = 'source-map'
 
     Object.assign(defines, {
       'process.env': {
-        'NODE_ENV': '"production"'
-      }
+        'NODE_ENV': '"production"',
+      },
     })
   }
 
@@ -99,8 +98,8 @@ module.exports = function (maybeEnv) {
 
   if (!env.disableIndex) {
     plugins.push(new HtmlWebpackPlugin({
-      template: 'src/index.template.ejs',
       inject: 'body',
+      template: 'src/index.template.ejs',
     }))
   }
 
@@ -112,17 +111,17 @@ module.exports = function (maybeEnv) {
     devtool,
     entry,
     output: {
-      path: __dirname + '/build',
       filename: './bundle.js',
+      path: __dirname + '/build',
       publicPath,
     },
     module: {
       loaders: [
         { test: /\.tsx?$/, exclude: /node_modules/, loaders: tsLoaders },
         {
-          enforce: 'pre',
           test: /\.tsx?$/,
           loader: 'tslint-loader',
+          enforce: 'pre',
         },
         { test: /\.scss$/, loaders: wrapCss([
           {
@@ -134,13 +133,13 @@ module.exports = function (maybeEnv) {
               namedExport: true,
               localIdentName: '[name]__[local]___[hash:base64:5]',
               minimize: !!env.production,
-            }
+            },
           },
           {
             loader: 'sass',
             query: {
               sourceMap,
-            }
+            },
           },
         ])},
         { test: /\.styl$/, loaders: wrapCss([
@@ -153,17 +152,17 @@ module.exports = function (maybeEnv) {
               namedExport: true,
               localIdentName: '[name]__[local]___[hash:base64:5]',
               minimize: !!env.production,
-            }
+            },
           },
           {
             loader: 'stylus',
             query: {
               sourceMap,
-            }
+            },
           },
         ])},
         { test: /\.json$/, loader: 'json' },
-      ]
+      ],
     },
     plugins: plugins,
   }

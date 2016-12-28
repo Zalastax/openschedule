@@ -8,6 +8,8 @@ import { uniqBy, mapValues } from 'lodash'
 import { Interval, IntervalTree } from 'node-interval-tree'
 import { fillEmpty, flatten, IntervalSplit } from 'interval'
 
+import TetherComponent from 'components/tether'
+
 import {
   IcsInterval,
   State,
@@ -83,7 +85,7 @@ interface IntervalSplitCProps {
 class IntervalSplitC extends React.Component<IntervalSplitCProps, void> {
   public render() {
     return (
-      <div>
+      <div className={CSS.intervalsplit}>
         {moment(this.props.split.low).format()} - {moment(this.props.split.high).format()}:
         <ul>
         {
@@ -104,6 +106,7 @@ interface CalendarDayProps {
   heights: IntervalSplit<IcsInterval>[]
   max: number
   onSplitClick: (split: IntervalSplit<IcsInterval>) => void
+  focusedSplit?: IntervalSplit<IcsInterval> | Falsey
 }
 
 class CalendarDay extends React.Component<CalendarDayProps, void> {
@@ -112,16 +115,44 @@ class CalendarDay extends React.Component<CalendarDayProps, void> {
   }
 
   public render() {
+    const split = this.props.focusedSplit
     return (
       <div className={CSS.otherDays}>
         <div className={CSS.date}>{ this.props.date }</div>
         {
-          this.props.heights.map((a, i) =>
-            <Height split={a} key={i} max={this.props.max} onClick={this.props.onSplitClick} />)
+          this.props.heights.map(this.renderHeight.bind(this, split))
         }
         <DayHours />
       </div>
     )
+  }
+
+  private renderHeight(
+    focusedSplit: IntervalSplit<IcsInterval> | Falsey,
+    split: IntervalSplit<IcsInterval>,
+    index: number,
+  ): JSX.Element {
+    if (focusedSplit && focusedSplit.low === split.low && focusedSplit.high === split.high) {
+      return (<TetherComponent
+        key={index}
+        attachment='middle left'
+        targetAttachement='middle left'
+        constraints={[{
+          to: 'scrollParent',
+          attachment: 'together',
+          pin: true,
+        }]}
+      >
+          { /* First child: This is what the item will be tethered to */ }
+          {<Height split={split} max={this.props.max} onClick={this.props.onSplitClick} />}
+          { /* Second child: If present, this item will be tethered to the the first child */ }
+          {
+            <IntervalSplitC split={split} />
+          }
+      </TetherComponent>)
+    } else {
+      return <Height split={split} key={index} max={this.props.max} onClick={this.props.onSplitClick} />
+    }
   }
 }
 
@@ -223,20 +254,24 @@ interface CalendarWeekState {
   focusedSplit?: IntervalSplit<IcsInterval>
 }
 
+function dayOfSplit(split: IntervalSplit<IcsInterval>) {
+  return moment(split.low).date()
+}
+
 class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState> {
 
   public state: CalendarWeekState = {}
 
   public render() {
     const days = this.getDays()
+    const split = this.state.focusedSplit
+
+    const splitDate = split && dayOfSplit(split)
 
     return (
       <div>
-        {
-          this.state.focusedSplit && <IntervalSplitC split={this.state.focusedSplit} />
-        }
         <header>
-          <h1>{this.props.weekStart.format('MMMM YYYY')}</h1>
+          <h1>{this.props.weekStart.format('MMMM')}</h1>
         </header>
         <div className={CSS.calendar}>
           <ul className={CSS.weekdays}>
@@ -253,6 +288,7 @@ class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState>
                 heights={splits}
                 max={this.props.sources.length}
                 onSplitClick={this.onSplitClick}
+                focusedSplit={date === splitDate && split}
               />)
           }
           </ul>

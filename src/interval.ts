@@ -1,7 +1,7 @@
 import { Interval, IntervalTree, Node } from 'node-interval-tree'
 import { Heap } from 'typescript-collections'
 
-class SearchTraverser<T extends Interval> implements TraverseCustomizer<T>{
+class SearchTraverser<T extends Interval> implements TraverseCustomizer<T> {
   constructor(private low: number, private high: number) {
   }
 
@@ -50,7 +50,7 @@ export class CustomInOrder<T extends Interval> implements IterableIterator<T> {
     }
 
     // skip items outside of search range
-    while(this.i < this.currentNode.records.length && this.traverser.discard(this.currentNode.records[this.i])) {
+    while (this.i < this.currentNode.records.length && this.traverser.discard(this.currentNode.records[this.i])) {
         this.i++
     }
 
@@ -62,8 +62,9 @@ export class CustomInOrder<T extends Interval> implements IterableIterator<T> {
       }
     }
 
-    if ( this.currentNode.right !== undefined && this.traverser.allowRightVisit(this.currentNode.right)) { // Can we go right?
-      this.push(this.currentNode.right)
+    const right = this.currentNode.right
+    if ( right != null && this.traverser.allowRightVisit(right)) { // Can we go right?
+      this.push(right)
     } else { // Otherwise go up
       // Might pop the last and set this.currentNode = undefined
       this.pop()
@@ -79,7 +80,7 @@ export class CustomInOrder<T extends Interval> implements IterableIterator<T> {
     this.currentNode = node
     this.i = 0
 
-    while(this.currentNode.left !== undefined && this.traverser.allowLeftVisit(this.currentNode.left)) {
+    while (this.currentNode.left !== undefined && this.traverser.allowLeftVisit(this.currentNode.left)) {
       this.stack.push(this.currentNode)
       this.currentNode = this.currentNode.left
     }
@@ -109,7 +110,7 @@ function toArray <T>(heap: Heap<T>): T[] {
   return (heap as any).data.concat()
 }
 
-class FlattenTraverser<T extends Interval> implements TraverseCustomizer<T>{
+class FlattenTraverser<T extends Interval> implements TraverseCustomizer<T> {
   constructor(private low: number, private high: number) {
   }
 
@@ -126,10 +127,9 @@ class FlattenTraverser<T extends Interval> implements TraverseCustomizer<T>{
   }
 }
 
-
 export function flatten<T extends Interval>(tree: IntervalTree<T>, low: number, high: number) {
   const it = new CustomInOrder(new FlattenTraverser(low, high), tree)
-  const queue = new Heap<T>(compHigh);
+  const queue = new Heap<T>(compHigh)
   const acc: IntervalSplit<T>[] = []
   let last = it.next()
   if (last.done) {
@@ -141,7 +141,7 @@ export function flatten<T extends Interval>(tree: IntervalTree<T>, low: number, 
 
   function flushTo(until: number) {
     let peek = queue.peek()
-    while(peek !== undefined && peek.high <= until) {
+    while (peek !== undefined && peek.high <= until) {
       Array.prototype.push.apply(temp.overlapping, toArray(queue))
       const top = queue.removeRoot()
       peek = queue.peek()
@@ -151,7 +151,7 @@ export function flatten<T extends Interval>(tree: IntervalTree<T>, low: number, 
       temp = newSplit(top.high, top.high, [])
 
       // avoid creating intervals where low = high
-      while(peek !== undefined && peek.high === top.high) {
+      while (peek !== undefined && peek.high === top.high) {
         queue.removeRoot()
         peek = queue.peek()
       }
@@ -190,15 +190,13 @@ export function flatten<T extends Interval>(tree: IntervalTree<T>, low: number, 
 }
 
 export function fillEmpty<T extends Interval>(splits: IntervalSplit<T>[], low: number, high: number) {
-  //debugger
-  if (splits.length == 0) {
+  if (splits.length === 0) {
     return [newSplit(low, high, [])]
   }
 
   const ret = []
   let temp = low
-  for(let i = 0; i < splits.length; i++) {
-    const split = splits[i]
+  for (let split of splits) {
     if (temp < split.low) {
       ret.push(newSplit(temp, split.low, []))
     }

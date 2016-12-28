@@ -1,25 +1,12 @@
-import { Component, Children, PropTypes } from 'react'
+import { Component, Children } from 'react'
 import * as ReactDOM from 'react-dom'
 import * as Tether from 'tether'
 
-const renderElementToPropTypes = [
-  PropTypes.string,
-  PropTypes.shape({
-    appendChild: PropTypes.func.isRequired
-  })
-]
+// Inspired by https://github.com/souporserious/react-tether
 
-/*
-const childrenPropType = ({ children }, propName, componentName) => {
-  const childCount = Children.count(children)
-  if (childCount <= 0) {
-    return new Error(`${componentName} expects at least one child to use as the target element.`)
-  } else if (childCount > 2) {
-    return new Error(`Only a max of two children allowed in ${componentName}.`)
-  }
-}*/
+type Side = 'top' | 'bottom' | 'left' | 'right'
 
-type attachmentPositions = 
+type attachmentPositions =
   'auto auto' |
   'top left' |
   'top center' |
@@ -32,40 +19,20 @@ type attachmentPositions =
   'bottom right'
 
 type RenderElementTo = string | {
-  appendChild: Function
+  appendChild: Function,
 }
 
+interface Constraint {
+  attachment?: 'element' | 'target' | 'both' | 'together' | 'none'
+  pin?: boolean | Side[]
+  to: 'scrollParent' | 'window' | HTMLElement | [number, number, number, number]
+}
 
-const propTypes = {
-    renderElementTag: PropTypes.string,
-    renderElementTo: PropTypes.oneOfType(renderElementToPropTypes),
-    // attachment: PropTypes.oneOf(attachmentPositions).isRequired,
-    // targetAttachment: PropTypes.oneOf(attachmentPositions),
-    offset: PropTypes.string,
-    targetOffset: PropTypes.string,
-    targetModifier: PropTypes.string,
-    enabled: PropTypes.bool,
-    classes: PropTypes.object,
-    classPrefix: PropTypes.string,
-    optimizations: PropTypes.object,
-    constraints: PropTypes.array,
-    id: PropTypes.string,
-    className: PropTypes.string,
-    style: PropTypes.object,
-    onUpdate: PropTypes.func,
-    onRepositioned: PropTypes.func,
-   // children: childrenPropType
-  }
-console.log(propTypes)
-
-interface RequiredTetherProps {
+interface TetherProps {
   attachment: attachmentPositions
-  renderElementTag: string
-  renderElementTo: RenderElementTo
-}
-
-interface OptionalTetherProps {
+  renderElementTag?: string
   renderElementTo?: RenderElementTo
+
   targetAttachement?: attachmentPositions
   offset?: string
   targetOffset?: string
@@ -74,60 +41,49 @@ interface OptionalTetherProps {
   classes?: {}
   classPrefix?: string
   optimizations?: {}
-  constraints?: any[]
+  constraints?: Constraint[]
   id?: string
   className?: string
-  style?: {}
+  style?: {[key: number]: string}
   onUpdate?: Function
   onRepositioned?: Function
 }
 
-type TetherProps = RequiredTetherProps & OptionalTetherProps
-
-interface ConstructorTetherProps {
-  attachment: attachmentPositions
-  renderElementTag?: string
-  renderElementTo?: RenderElementTo
-}
-
-const defaultProps = {
-  renderElementTag: 'div',
-  renderElementTo: null
-}
-
-new TetherComponent({
-
-})
 class TetherComponent extends Component<TetherProps, void> {
 
-  constructor(props: ConstructorTetherProps & OptionalTetherProps) {
-    super({...defaultProps, ...props})
+  public static defaultProps = {
+    renderElementTag: 'div',
+    renderElementTo: null,
   }
 
-  private targetNode?: Element = undefined
-  private elementParentNode?:Element = undefined
   public tether?: Tether = undefined
+  private targetNode?: HTMLElement = undefined
+  private elementParentNode?: HTMLElement = undefined
 
-  componentDidMount() {
-    this.targetNode = ReactDOM.findDOMNode(this as React.ReactInstance)
-    this._update()
+  public render() {
+    return Children.toArray(this.props.children)[0] as React.ReactElement<any>
+  }
+
+  public componentDidMount() {
+    this.targetNode = ReactDOM.findDOMNode<HTMLElement>(this as React.ReactInstance)
+    this.update()
     this.registerEventListeners()
   }
 
-  componentDidUpdate(_prevProps: TetherProps) {
-    this._update()
+  public componentDidUpdate(_prevProps: TetherProps) {
+    this.update()
   }
 
-  componentWillUnmount() {
-    this._destroy()
+  public componentWillUnmount() {
+    this.destroy()
   }
-  
+
   private registerEventListeners() {
     if (this.props.onUpdate && this.tether != null) {
-      this.tether.on('update', this.props.onUpdate);
+      this.tether.on('update', this.props.onUpdate)
     }
     if (this.props.onRepositioned && this.tether != null) {
-      this.tether.on('repositioned', this.props.onRepositioned);
+      this.tether.on('repositioned', this.props.onRepositioned)
     }
   }
 
@@ -140,7 +96,7 @@ class TetherComponent extends Component<TetherProps, void> {
     }
   }
 
-  _destroy() {
+  private destroy() {
     const pn = this.elementParentNode
     if (pn != null) {
       ReactDOM.unmountComponentAtNode(pn)
@@ -156,15 +112,15 @@ class TetherComponent extends Component<TetherProps, void> {
     this.tether = undefined
   }
 
-  _update() {
+  private update() {
     const { children, renderElementTag } = this.props
-    const elementComponent = Children.toArray(children)[1]
+    const elementComponent = Children.toArray(children)[1] as React.ReactElement<any> | undefined
 
     // if no element component provided, bail out
-    if (!elementComponent) {
+    if (elementComponent == null) {
       // destroy Tether element if it has been created
       if (this.tether) {
-        this._destroy()
+        this.destroy()
       }
       return
     }
@@ -172,7 +128,7 @@ class TetherComponent extends Component<TetherProps, void> {
     // create element node container if it hasn't been yet
     if (this.elementParentNode == null) {
       // create a node that we can stick our content Component in
-      this.elementParentNode = document.createElement(renderElementTag)
+      this.elementParentNode = document.createElement(renderElementTag!)
 
       // append node to the render node
       this.renderNode.appendChild(this.elementParentNode)
@@ -183,7 +139,7 @@ class TetherComponent extends Component<TetherProps, void> {
       this, elementComponent, this.elementParentNode, () => {
         // don't update Tether until the subtree has finished rendering
         this.updateTether()
-      }
+      },
     )
   }
 
@@ -192,7 +148,7 @@ class TetherComponent extends Component<TetherProps, void> {
     const tetherOptions = {
       target: this.targetNode,
       element: this.elementParentNode,
-      ...options
+      ...options,
     }
 
     const pn = this.elementParentNode
@@ -206,8 +162,8 @@ class TetherComponent extends Component<TetherProps, void> {
       }
 
       if (style) {
-        Object.keys(style).forEach(key => {
-          pn.style[key] = style[key]
+        Object.keys(style).forEach((key: string) => {
+          pn.style[+key] = style[+key]
         })
       }
     }
@@ -219,10 +175,6 @@ class TetherComponent extends Component<TetherProps, void> {
     }
 
     (this.tether as Tether).position()
-  }
-
-  public render() {
-    return Children.toArray(this.props.children)[0] as React.ReactElement
   }
 }
 
