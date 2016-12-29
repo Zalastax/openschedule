@@ -1,6 +1,5 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import compare = require('react-addons-shallow-compare')
 import * as moment from 'moment'
 import { connect } from 'react-redux'
 import { uniqBy, mapValues } from 'lodash'
@@ -17,7 +16,7 @@ import {
  } from 'model'
 
 // Set locale to ISO 8601 weeks
-moment.updateLocale('en', { week: { dow: 1, doy: 4 } })
+moment.updateLocale('en-gb', { week: { dow: 1, doy: 4 } })
 
 import DayHours from './hours'
 
@@ -110,10 +109,6 @@ interface CalendarDayProps {
 }
 
 class CalendarDay extends React.Component<CalendarDayProps, void> {
-  public shouldComponentUpdate(nextProps: CalendarDayProps) {
-    return compare(this, nextProps, undefined)
-  }
-
   public render() {
     const split = this.props.focusedSplit
     return (
@@ -271,7 +266,7 @@ class CalendarWeek extends React.Component<CalendarWeekProps, CalendarWeekState>
     return (
       <div>
         <header>
-          <h1>{this.props.weekStart.format('MMMM')}</h1>
+          <h1>{this.props.weekStart.format('MMMM YYYY')}</h1>
         </header>
         <div className={CSS.calendar}>
           <ul className={CSS.weekdays}>

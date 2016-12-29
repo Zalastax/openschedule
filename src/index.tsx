@@ -1,4 +1,5 @@
-import './setup'
+import { isHot } from './setup'
+import { hotwrap } from './hot'
 
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
@@ -6,38 +7,25 @@ import * as ReactDOM from 'react-dom'
 import configureStore from 'model/configureStore'
 import { Provider } from 'react-redux'
 
-import './index.styl'
+import Root from 'components/root'
 
-import CalendarSelection from 'components/calendar-selection'
-import CalendarWeek from 'components/calendar-week'
-import ErrorDisplay from 'components/errors'
-import CalendarInput from 'components/input'
-import WeekSelection from 'components/week-selection'
+import './index.styl'
 
 const store = configureStore({})
 
-class Out extends React.Component<void, void> {
-
-  constructor(props?: void, context?: any) {
-    super(props, context)
-  }
-
-  public render() {
-    return (
-      <div>
-        <CalendarInput />
-        <CalendarSelection />
-        <WeekSelection />
-        <ErrorDisplay />
-        <CalendarWeek />
-      </div>
-    )
-  }
+function render<T>(component: React.ReactElement<T>) {
+  ReactDOM.render(hotwrap(
+    <Provider store={store}>
+      {component}
+  </Provider>),
+    document.getElementById('content') as HTMLElement,
+  )
 }
 
-ReactDOM.render(
-  <Provider store={store}>
-    <Out />
-  </Provider>,
-  document.getElementById('content') as HTMLElement,
-)
+render(<Root />)
+
+if (isHot) {
+  (module as any).hot.accept('components/root', () => {
+    render(React.createElement(require('components/root').default))
+  })
+}

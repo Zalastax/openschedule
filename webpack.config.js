@@ -8,6 +8,45 @@ const path = require('path')
 const cssNameGenerator = require('css-class-generator')
 const nameIt = cssNameGenerator('_')
 
+/* tslint:disable: object-literal-sort-keys */
+
+function vendorSplit(base, parts, log) {
+  const partsCopy = parts.slice()
+  function test(str, module) {
+    return ('' + module.resource).indexOf(str) !== -1
+  }
+
+  function willRemain(module) {
+    return test(base, module.resource) && (!partsCopy.some(name => test(name, module)))
+  }
+
+  const plugins = [
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      // all node modules are moved to vendor, otherwise other CommonsChunkPlugin won't see them
+      minChunks: module => {
+        if (log && willRemain(module)) {
+          console.log('In vendor:', module.resource)
+        }
+        return test(base, module)
+      },
+    })
+  ]
+
+  const remaining = parts.slice()
+
+  while (remaining.length > 0) {
+    const copy = remaining.slice()
+    remaining.shift()
+    plugins.push(new webpack.optimize.CommonsChunkPlugin({
+      name: copy[0],
+      minChunks: module => test(base, module) && (copy.some(name => test(name, module))),
+    }))
+  }
+
+  return plugins
+}
+
 module.exports = function (maybeEnv) {
   const env = maybeEnv || {}
   const nameCache = {}
@@ -21,19 +60,24 @@ module.exports = function (maybeEnv) {
     SERVER_URL: JSON.stringify(serverUrl),
   }
 
+  const vendors = ['core-js', 'react', 'typescript-collections', 'lodash',
+                    'rxjs', 'redux', 'tether', 'fbjs', 'moment', 'symbol-observable']
+
   const plugins = [
-    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en/),
-    new webpack.optimize.OccurrenceOrderPlugin(),
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en-gb/),
+    new webpack.optimize.OccurrenceOrderPlugin(true),
     new caseSensitivePathsWebpackPlugin(),
     new WatchMissingNodeModulesPlugin(path.resolve('node_modules')),
     new webpack.LoaderOptionsPlugin({
       options: {
+        context: __dirname,
         tslint: {
           emitErrors: false,
           failOnHint: false,
         },
       },
     }),
+    ...vendorSplit('node_modules', vendors),
   ]
 
   const styleLoader = {
@@ -45,9 +89,11 @@ module.exports = function (maybeEnv) {
   let wrapCss = loaders => [styleLoader, ...loaders]
 
   const tsLoaders = ['awesome-typescript-loader']
-  const entry = ['./src/index.tsx']
+  const appEntry = ['./src/index.tsx']
+  //const vendorEntry = ['react', 'react-dom', 'moment', 'redux']
 
   if (env.hmr) {
+    appEntry.unshift('react-hot-loader/patch')
     tsLoaders.unshift('react-hot-loader/webpack')
     plugins.push(new webpack.NamedModulesPlugin())
   }
@@ -56,6 +102,7 @@ module.exports = function (maybeEnv) {
     plugins.push(
       new webpack.LoaderOptionsPlugin({
         options: {
+          context: __dirname,
           cssLoader: {
             customInterpolateName: function (originalName) {
               let newName = nameCache[originalName]
@@ -98,6 +145,7 @@ module.exports = function (maybeEnv) {
 
   if (!env.disableIndex) {
     plugins.push(new HtmlWebpackPlugin({
+      chunksSortMode: 'dependency',
       inject: 'body',
       template: 'src/index.template.ejs',
     }))
@@ -109,9 +157,12 @@ module.exports = function (maybeEnv) {
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     devtool,
-    entry,
+    entry: {
+      app: appEntry,
+      //vendor: vendorEntry,
+    },
     output: {
-      filename: './bundle.js',
+      filename: '[name].[hash].js',
       path: __dirname + '/build',
       publicPath,
     },
@@ -136,7 +187,7 @@ module.exports = function (maybeEnv) {
             },
           },
           {
-            loader: 'sass',
+            loader: 'sass-loader',
             query: {
               sourceMap,
             },
@@ -155,13 +206,13 @@ module.exports = function (maybeEnv) {
             },
           },
           {
-            loader: 'stylus',
+            loader: 'stylus-loader',
             query: {
               sourceMap,
             },
           },
         ])},
-        { test: /\.json$/, loader: 'json' },
+        { test: /\.json$/, loader: 'json-loader' },
       ],
     },
     plugins: plugins,
