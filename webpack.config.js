@@ -10,6 +10,12 @@ const nameIt = cssNameGenerator('_')
 
 /* tslint:disable: object-literal-sort-keys */
 
+const isDevServer = process.argv[1].indexOf('webpack-dev-server') !== -1
+let hash = 'chunkhash'
+if (isDevServer) {
+  hash = 'hash'
+}
+
 function vendorSplit(base, parts, log) {
   const partsCopy = parts.slice()
   function test(str, module) {
@@ -17,7 +23,7 @@ function vendorSplit(base, parts, log) {
   }
 
   function willRemain(module) {
-    return test(base, module.resource) && (!partsCopy.some(name => test(name, module)))
+    return test(base, module) && (!partsCopy.some(name => test(name, module)))
   }
 
   const plugins = [
@@ -39,7 +45,7 @@ function vendorSplit(base, parts, log) {
     const copy = remaining.slice()
     remaining.shift()
     plugins.push(new webpack.optimize.CommonsChunkPlugin({
-      name: copy[0],
+      name: copy[0].replace(/\W/g, ''),
       minChunks: module => test(base, module) && (copy.some(name => test(name, module))),
     }))
   }
@@ -60,8 +66,11 @@ module.exports = function (maybeEnv) {
     SERVER_URL: JSON.stringify(serverUrl),
   }
 
-  const vendors = ['core-js', 'react', 'typescript-collections', 'lodash',
-                    'rxjs', 'redux', 'tether', 'fbjs', 'moment', 'symbol-observable']
+  let vendors = []
+  if (env.splitVendors) {
+    vendors = ['core-js', 'typescript-collections', 'lodash',
+                      'rxjs', 'redux', 'tether', 'fbjs', 'moment', 'symbol-observable', '\\react\\', '\\react-dom\\']
+  }
 
   const plugins = [
     new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en-gb/),
@@ -90,7 +99,6 @@ module.exports = function (maybeEnv) {
 
   const tsLoaders = ['awesome-typescript-loader']
   const appEntry = ['./src/index.tsx']
-  //const vendorEntry = ['react', 'react-dom', 'moment', 'redux']
 
   if (env.hmr) {
     appEntry.unshift('react-hot-loader/patch')
@@ -119,7 +127,7 @@ module.exports = function (maybeEnv) {
       new webpack.optimize.UglifyJsPlugin({ sourceMap }),
       new ExtractTextPlugin({
         allChunks: true,
-        filename: 'styles-[hash].css',
+        filename: `styles-[${hash}].css`,
       })
     )
 
@@ -162,7 +170,7 @@ module.exports = function (maybeEnv) {
       //vendor: vendorEntry,
     },
     output: {
-      filename: '[name].[hash].js',
+      filename: `[name].[${hash}].js`,
       path: __dirname + '/build',
       publicPath,
     },

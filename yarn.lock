@@ -129,7 +129,7 @@
     "@types/jquery" "*"
     "@types/node" "*"
 
-"@types/lodash@^4.14.37", "@types/lodash@^4.14.43":
+"@types/lodash@^4.14.37", "@types/lodash@^4.14.44":
   version "4.14.44"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.44.tgz#04585ff0b80d5e434a5f86f15e7964be4f775cba"
 

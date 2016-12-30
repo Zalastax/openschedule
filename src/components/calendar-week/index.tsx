@@ -2,7 +2,10 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as moment from 'moment'
 import { connect } from 'react-redux'
-import { uniqBy, mapValues } from 'lodash'
+
+import uniqBy from 'lodash/uniqBy'
+//import uniqBy = require('lodash/uniqBy')
+import mapValues from 'lodash/mapValues'
 
 import { Interval, IntervalTree } from 'node-interval-tree'
 import { fillEmpty, flatten, IntervalSplit } from 'interval'

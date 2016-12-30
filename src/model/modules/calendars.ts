@@ -9,7 +9,7 @@ import {
 import * as moment from 'moment'
 import { Action as ReduxAction, MiddlewareAPI } from 'redux'
 import { ActionsObservable } from 'redux-observable'
-import { Observable } from 'rxjs'
+import { Observable } from 'rxjs/Observable'
 import actionCreator, { Action, Failure, isType } from './actionCreator'
 import { errorTranslators } from './errors'
 

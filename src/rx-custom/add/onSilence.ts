@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs'
+import { Observable } from 'rxjs/Observable'
 import { onSilence } from '../operator/onSilence'
 
 declare module 'rxjs/Observable' {
