@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs'
+import { Observable } from 'rxjs/Observable'
 import { filterUndefined } from '../operator/filterUndefined'
 
 declare module 'rxjs/Observable' {
