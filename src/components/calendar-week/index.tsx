@@ -4,7 +4,6 @@ import * as moment from 'moment'
 import { connect } from 'react-redux'
 
 import uniqBy from 'lodash/uniqBy'
-//import uniqBy = require('lodash/uniqBy')
 import mapValues from 'lodash/mapValues'
 
 import { Interval, IntervalTree } from 'node-interval-tree'

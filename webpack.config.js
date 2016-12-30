@@ -1,4 +1,5 @@
 const webpack = require('webpack')
+const { CheckerPlugin } = require('awesome-typescript-loader')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin')
@@ -53,24 +54,123 @@ function vendorSplit(base, parts, log) {
   return plugins
 }
 
+function ifEnv(env, prop, arr) {
+  if (env[prop]) {
+    return arr
+  }
+  return []
+}
+
+const ifHot = (env, arr) => ifEnv(env, 'hmr', arr)
+const ifProduction = (env, arr) => ifEnv(env, 'production', arr)
+
+const hotEntry = env => ifHot(env, ['react-hot-loader/patch'])
+const hotPlugins = env => ifHot(env, [new webpack.NamedModulesPlugin()])
+const hotTs = env => ifHot(env, ['react-hot-loader/webpack'])
+const appEntry = env => [...hotEntry(env), './src/index.tsx']
+
+function tsLoaders(env) {
+  return [...hotTs(env), 'awesome-typescript-loader']
+}
+
+const productionPlugins = (nameCache, sourceMap, env) => ifProduction(env, [
+  new webpack.LoaderOptionsPlugin({
+    options: {
+      context: __dirname,
+      cssLoader: {
+        customInterpolateName: function (originalName) {
+          let newName = nameCache[originalName]
+          if (newName == null) {
+            newName = nameIt.next().value
+            nameCache[originalName] = newName
+          }
+          return newName
+        },
+        sourceMap,
+      },
+    },
+  }),
+  new webpack.optimize.UglifyJsPlugin({ sourceMap }),
+  new ExtractTextPlugin({
+    allChunks: true,
+    filename: `styles-[${hash}].css`,
+  }),
+])
+
+function htmlPlugin(env) {
+  if (!env.disableIndex) {
+    return [
+      new HtmlWebpackPlugin({
+        chunksSortMode: 'dependency',
+        inject: 'body',
+        template: 'src/index.template.ejs',
+      }),
+    ]
+  }
+  return []
+}
+
+function wrapCss(env, loaders) {
+  const styleLoader = {
+    loader: 'style-loader',
+    query: {
+      sourceMap: !env.disableSourceMap,
+    },
+  }
+
+  if (env.production) {
+    return ExtractTextPlugin.extract({
+      fallbackLoader: styleLoader,
+      loader: loaders,
+    })
+  }
+
+  return [styleLoader, ...loaders]
+}
+
+function devtool(env) {
+  if (env.disableSourceMap) {
+    return undefined
+  }
+  if (env.production) {
+    return 'source-map'
+  }
+  return 'cheap-module-eval-source-map'
+}
+
+function defines(env) {
+  const serverUrl = env.firebase ? 'https://quiet-headland-30358.herokuapp.com' : 'http://localhost:3000'
+
+  const ret = {
+    SERVER_URL: JSON.stringify(serverUrl),
+  }
+
+  if (env.production) {
+    Object.assign(ret, {
+      'process.env': {
+        'NODE_ENV': '"production"',
+      },
+    })
+  }
+
+  return ret
+}
+
+function vendors(env) {
+  if (env.splitVendors) {
+    return ['core-js', 'typescript-collections', 'lodash',
+                      'rxjs', 'redux', 'tether', 'fbjs', 'moment', 'symbol-observable', '\\react\\', '\\react-dom\\']
+  }
+
+  return []
+}
+
 module.exports = function (maybeEnv) {
   const env = maybeEnv || {}
   const nameCache = {}
 
-  let devtool = 'cheap-module-eval-source-map'
-
   const publicPath = env.production ? undefined : '/'
   const sourceMap = !env.disableSourceMap
-  const serverUrl = env.firebase ? 'https://quiet-headland-30358.herokuapp.com' : 'http://localhost:3000'
-  const defines = {
-    SERVER_URL: JSON.stringify(serverUrl),
-  }
-
-  let vendors = []
-  if (env.splitVendors) {
-    vendors = ['core-js', 'typescript-collections', 'lodash',
-                      'rxjs', 'redux', 'tether', 'fbjs', 'moment', 'symbol-observable', '\\react\\', '\\react-dom\\']
-  }
 
   const plugins = [
     new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en-gb/),
@@ -86,88 +186,22 @@ module.exports = function (maybeEnv) {
         },
       },
     }),
-    ...vendorSplit('node_modules', vendors),
+    ...vendorSplit('node_modules', vendors(env)),
+    new CheckerPlugin(),
+    ...hotPlugins(env),
+    ...productionPlugins(nameCache, sourceMap, env),
+    ...htmlPlugin(env),
+    new webpack.DefinePlugin(defines(env)),
   ]
-
-  const styleLoader = {
-    loader: 'style-loader',
-    query: {
-      sourceMap,
-    },
-  }
-  let wrapCss = loaders => [styleLoader, ...loaders]
-
-  const tsLoaders = ['awesome-typescript-loader']
-  const appEntry = ['./src/index.tsx']
-
-  if (env.hmr) {
-    appEntry.unshift('react-hot-loader/patch')
-    tsLoaders.unshift('react-hot-loader/webpack')
-    plugins.push(new webpack.NamedModulesPlugin())
-  }
-
-  if (env.production) {
-    plugins.push(
-      new webpack.LoaderOptionsPlugin({
-        options: {
-          context: __dirname,
-          cssLoader: {
-            customInterpolateName: function (originalName) {
-              let newName = nameCache[originalName]
-              if (newName == null) {
-                newName = nameIt.next().value
-                nameCache[originalName] = newName
-              }
-              return newName
-            },
-            sourceMap,
-          },
-        },
-      }),
-      new webpack.optimize.UglifyJsPlugin({ sourceMap }),
-      new ExtractTextPlugin({
-        allChunks: true,
-        filename: `styles-[${hash}].css`,
-      })
-    )
-
-    wrapCss = loader => ExtractTextPlugin.extract({
-      fallbackLoader: styleLoader,
-      loader,
-    })
-
-    devtool = 'source-map'
-
-    Object.assign(defines, {
-      'process.env': {
-        'NODE_ENV': '"production"',
-      },
-    })
-  }
-
-  if (!sourceMap) {
-    devtool = undefined
-  }
-
-  plugins.push(new webpack.DefinePlugin(defines))
-
-  if (!env.disableIndex) {
-    plugins.push(new HtmlWebpackPlugin({
-      chunksSortMode: 'dependency',
-      inject: 'body',
-      template: 'src/index.template.ejs',
-    }))
-  }
 
   return {
     resolve: {
       extensions: ['.ts', '.tsx', '.webpack.js', '.web.js', '.js'],
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
-    devtool,
+    devtool: devtool(env),
     entry: {
-      app: appEntry,
-      //vendor: vendorEntry,
+      app: appEntry(env),
     },
     output: {
       filename: `[name].[${hash}].js`,
@@ -176,13 +210,13 @@ module.exports = function (maybeEnv) {
     },
     module: {
       loaders: [
-        { test: /\.tsx?$/, exclude: /node_modules/, loaders: tsLoaders },
+        { test: /\.tsx?$/, exclude: /node_modules/, loaders: tsLoaders(env) },
         {
           test: /\.tsx?$/,
           loader: 'tslint-loader',
           enforce: 'pre',
         },
-        { test: /\.scss$/, loaders: wrapCss([
+        { test: /\.scss$/, loaders: wrapCss(env, [
           {
             loader: 'typings-for-css-modules-loader',
             query: {
@@ -201,7 +235,7 @@ module.exports = function (maybeEnv) {
             },
           },
         ])},
-        { test: /\.styl$/, loaders: wrapCss([
+        { test: /\.styl$/, loaders: wrapCss(env, [
           {
             loader: 'typings-for-css-modules-loader',
             query: {
