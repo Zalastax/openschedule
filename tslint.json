@@ -10,15 +10,18 @@
     /*
      * Any rules specified here will override those from the base config we are extending
      */
-     "semicolon": [true, "never"],
-     "interface-name": [true, "never-prefix"],
      "align": [false],
-     "object-literal-sort-keys": false,
-     "linebreak-style": [true, "LF"],
-     "indent": [true, "spaces"],
-     "quotemark": [true, "single", "avoid-escape"],
-     "max-classes-per-file": [false],
+     "array-type": [false],
      "arrow-parens": false,
+     "indent": [true, "spaces"],
+     "interface-name": [true, "never-prefix"],
+     "linebreak-style": [true, "LF"],
+     "max-classes-per-file": [false],
+     "object-literal-sort-keys": false,
+     "only-arrow-functions": [false],
+     "ordered-imports": [false],
+     "quotemark": [true, "single", "avoid-escape"],
+     "semicolon": [true, "never"],
      "variable-name": [
        true,
        "check-format",
