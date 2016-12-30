@@ -32,7 +32,7 @@ class Selection extends React.Component<SelectionProps, void> {
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const target = event.target
+    const target = event.currentTarget
     this.props.onChange({
       name: this.props.name,
       value: !!target.checked,
@@ -55,12 +55,12 @@ export class CalendarSelection extends React.Component<CalendarSelectionProps, v
     return (
       <ul>
         {
-          Object.keys(this.props.schedule).map(name => (
+          Object.keys(this.props.schedule.byURL).map(name => (
             <Selection
               key={name}
               name={name}
               onChange={this.props.selection}
-              selected={this.props.schedule[name].selected}
+              selected={this.props.schedule.byURL[name].selected}
             />
           ))
         }

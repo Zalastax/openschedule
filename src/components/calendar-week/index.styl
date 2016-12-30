@@ -73,9 +73,19 @@ anchor()
 @media (max-width: 768px)
   .mobilehidden
     display: none
-  
+
   .otherDays
     margin-bottom: 10px
 
   .days
     display: block
+
+:global .tether-target-attached-left :local .intervalsplit
+  border-right: 1px solid black;
+
+:global .tether-target-attached-right :local .intervalsplit
+  border-left: 1px solid black;
+
+.intervalsplit
+  background: white
+  z-index: 1
