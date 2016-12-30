@@ -1,5 +1,6 @@
 import {
   IcsInterval,
+  FILE_LOAD,
   REQUEST_URL,
   SELECTION_CHANGE,
   SelectionChange,
@@ -52,7 +53,7 @@ export const toggleEpic = (action$: ActionsObservable<SelectionChange>, store: M
 
 export const tree = (state = startState, action: ReduxAction): TreeState => {
   let newState = state
-  if (isType(action, REQUEST_URL.done)) {
+  if (isType(action, REQUEST_URL.done) || isType(action, FILE_LOAD.done)) {
     const payload = action.payload
 
     payload.result.forEach(value => state.tree.insert(value))

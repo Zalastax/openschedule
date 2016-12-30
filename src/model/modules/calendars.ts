@@ -1,4 +1,4 @@
-import { IcsEntry, parseICS } from 'ical/ical.js'
+import * as ical from 'ical/ical.js'
 import {
   Api,
   IcsInterval,
@@ -23,7 +23,13 @@ export interface CalendarsState {
   selected: string[]
 }
 
+export interface FileLoad {
+  content: string
+  name: string
+}
+
 export const REQUEST_URL = actionCreator.async<URL, IcsInterval[], Error>('SCHEDULE_REQUEST_URL')
+export const FILE_LOAD = actionCreator.async<FileLoad, IcsInterval[], Error>('FILE_LOAD')
 export const SELECTION_CHANGE = actionCreator<SelectionChange>('SELECTION_CHANGE')
 
 errorTranslators[REQUEST_URL.failed.type] = (x: Action<Failure<URL, Error>>) =>
@@ -37,6 +43,22 @@ function isDayStart(m: moment.Moment): boolean {
 // Epics
 // =============================================================================
 
+function toIcs(content: string, source: string) {
+  const ics = ical.parseICS(content)
+  return Object.values(ics)
+    .map((value: ical.IcsEntry): IcsInterval => {
+      const startMoment = moment(value.start)
+      const endMoment = moment(value.end)
+      if (startMoment.isSame(endMoment) && isDayStart(startMoment)) {
+        // Mutate endMoment to be end of day
+        endMoment.endOf('day')
+      }
+
+      return Object.assign({ low: +startMoment, high: +endMoment, source}, value)
+      },
+    )
+}
+
 export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<URL>>, store: MiddlewareAPI<State>) =>
   action$
     .ofType(REQUEST_URL.started.type)
@@ -48,19 +70,7 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
 
       return api.proxy(url)
       .map(response => {
-        const ics = parseICS(response.response)
-        const result = Object.values(ics)
-          .map((value: IcsEntry): IcsInterval => {
-            const startMoment = moment(value.start)
-            const endMoment = moment(value.end)
-            if (startMoment.isSame(endMoment) && isDayStart(startMoment)) {
-              // Mutate endMoment to be end of day
-              endMoment.endOf('day')
-            }
-
-            return Object.assign({ low: +startMoment, high: +endMoment, source: url}, value)
-            },
-          )
+        const result = toIcs(response.response, url)
 
         return REQUEST_URL.done({ params: url, result })
       })
@@ -68,6 +78,24 @@ export const requestUrlEpic = (api: Api) => (action$: ActionsObservable<Action<U
 
       },
     )
+
+export const fileLoadEpic = (action$: ActionsObservable<Action<FileLoad>>, store: MiddlewareAPI<State>) =>
+  action$
+    .ofType(FILE_LOAD.started.type)
+    .map((action: Action<FileLoad>) => {
+      const {content, name} = action.payload
+      const url = `file:///${name}`
+      if (store.getState().schedule.byURL[url]) {
+        return Observable.empty()
+      }
+
+      try {
+        const result = toIcs(content, url)
+        return FILE_LOAD.done({ params: { content, name: url}, result })
+      } catch (error) {
+        return FILE_LOAD.failed({params: action.payload, error})
+      }
+    })
 
 // =============================================================================
 // Reducer
@@ -91,6 +119,18 @@ export const schedule = (state: CalendarsState = defaultState, action: ReduxActi
     newState = {
       byURL,
       selected: [...state.selected, payload.params],
+    }
+  } else if (isType(action, FILE_LOAD.done)) {
+    const payload = action.payload
+    const byURL = Object.assign({}, state.byURL, {
+      [payload.params.name]: {
+        intervals: payload.result,
+        selected: true,
+      },
+    })
+    newState = {
+      byURL,
+      selected: [...state.selected, payload.params.name],
     }
   } else if (isType(action, SELECTION_CHANGE)) {
     const payload = action.payload

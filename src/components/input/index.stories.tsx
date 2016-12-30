@@ -5,5 +5,5 @@ import { CalendarInput } from "./index"
 
 storiesOf("CalendarInput", module)
   .add("base", () => (
-    <CalendarInput onGo={() => {;}} />
+    <CalendarInput onGo={() => {;}} onFile={() => {;}} />
   ))
