@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --env.production",
-    "build:stripped": "webpack --env.production --env.disableSourceMap",
-    "build:firebase": "webpack --env.production --env.disableSourceMap --env.firebase",
-    "analyze": "webpack --json --env.production > analysis.json",
+    "build:stripped": "npm run build -- --env.disableSourceMap",
+    "build:firebase": "npm run build -- --env.firebase",
+    "analyze": "npm run build -- --json > analysis.json",
     "dev": "webpack-dev-server --progress --inline --hot --env.hmr",
     "dev:prod": "webpack-dev-server --env.production --progress --inline --hot",
     "deploy": "npm run build:firebase && firebase deploy",
