@@ -2,10 +2,7 @@ import 'core-js/fn/object/values'
 
 import './setup-rx'
 
-export const isDev = (process && process.env && process.env.NODE_ENV) !== 'production'
-export const isHot = (module as any).hot
-
-if (isDev) {
+if (process.env.NODE_ENV !== 'production') {
   // tslint:disable-next-line
   require('expose-loader?Perf!react-addons-perf')
 }

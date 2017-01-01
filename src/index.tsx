@@ -1,4 +1,4 @@
-import { isHot } from './setup'
+import './setup'
 import { hotwrap } from './hot'
 
 import * as React from 'react'
@@ -24,7 +24,7 @@ function render<T>(component: React.ReactElement<T>) {
 
 render(<Root />)
 
-if (isHot) {
+if (process.env.HOT) {
   (module as any).hot.accept('components/root', () => {
     render(React.createElement(require('components/root').default))
   })

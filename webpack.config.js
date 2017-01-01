@@ -4,6 +4,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin')
 const caseSensitivePathsWebpackPlugin = require('case-sensitive-paths-webpack-plugin')
+const LodashModuleReplacementPlugin = require('lodash-webpack-plugin');
 const path = require('path')
 
 const cssNameGenerator = require('css-class-generator')
@@ -90,7 +91,15 @@ const productionPlugins = (nameCache, sourceMap, env) => ifProduction(env, [
       },
     },
   }),
-  new webpack.optimize.UglifyJsPlugin({ sourceMap }),
+  new webpack.optimize.UglifyJsPlugin({
+    sourceMap,
+    compress: {
+      pure_getters: true,
+      warnings: false,
+      collapse_vars: true,
+      reduce_vars: true,
+    },
+  }),
   new ExtractTextPlugin({
     allChunks: true,
     filename: `styles-[${hash}].css`,
@@ -141,19 +150,20 @@ function devtool(env) {
 function defines(env) {
   const serverUrl = env.firebase ? 'https://quiet-headland-30358.herokuapp.com' : 'http://localhost:3000'
 
-  const ret = {
-    SERVER_URL: JSON.stringify(serverUrl),
+  const processEnv = {
+    HOT: !!env.hmr,
   }
 
   if (env.production) {
-    Object.assign(ret, {
-      'process.env': {
-        'NODE_ENV': '"production"',
-      },
-    })
+    processEnv.NODE_ENV = '"production"'
   }
 
-  return ret
+  return {
+    SERVER_URL: JSON.stringify(serverUrl),
+    process: {
+      env: processEnv,
+    }
+  }
 }
 
 function vendors(env) {
@@ -174,6 +184,8 @@ module.exports = function (maybeEnv) {
 
   const plugins = [
     new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /en-gb/),
+    new webpack.DefinePlugin(defines(env)),
+    new LodashModuleReplacementPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(true),
     new caseSensitivePathsWebpackPlugin(),
     new WatchMissingNodeModulesPlugin(path.resolve('node_modules')),
@@ -191,7 +203,6 @@ module.exports = function (maybeEnv) {
     ...hotPlugins(env),
     ...productionPlugins(nameCache, sourceMap, env),
     ...htmlPlugin(env),
-    new webpack.DefinePlugin(defines(env)),
   ]
 
   return {

@@ -62,6 +62,7 @@
     "happypack": "^3.0.2",
     "html-webpack-plugin": "^2.22.0",
     "json-loader": "^0.5.4",
+    "lodash-webpack-plugin": "^0.10.6",
     "mocha": "^3.1.2",
     "react-addons-perf": "^15.4.1",
     "react-dev-utils": "^0.3.0",
