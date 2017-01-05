@@ -152,17 +152,14 @@ function defines(env) {
 
   const processEnv = {
     HOT: !!env.hmr,
-  }
-
-  if (env.production) {
-    processEnv.NODE_ENV = '"production"'
+    NODE_ENV: env.production ? '"production"' : '"development"',
   }
 
   return {
     SERVER_URL: JSON.stringify(serverUrl),
     process: {
       env: processEnv,
-    }
+    },
   }
 }
 
