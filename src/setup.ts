@@ -1,4 +1,5 @@
 import 'core-js/fn/object/values'
+import 'details-polyfill'
 
 import './setup-rx'
 

@@ -4,6 +4,11 @@
 
   header
     text-align: center
-    
+
   *
     box-sizing: border-box
+
+  // fix details-polyfill
+  html.no-details details > summary
+    width: 100%
+    float: left
