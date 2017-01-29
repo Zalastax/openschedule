@@ -90,7 +90,10 @@ class IntervalSplitC extends React.Component<IntervalSplitCProps, void> {
         {moment(this.props.split.low).format()} - {moment(this.props.split.high).format()}:
         <ul>
         {
-          this.props.split.overlapping.map(v => <li key={v.source}>{v.source}</li>)
+          this.props.split.overlapping.map(v => {
+            const text = v.summary + ' - ' + v.source
+            return <li key={text}>{text}</li>
+          })
         }
         </ul>
       </div>
