@@ -87,7 +87,7 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
           <summary>Perfect matches</summary>
           <ul>
           {
-            perfect.map(this.mapLi)
+            this.merge(perfect).map(this.mapLi)
           }
           </ul>
         </details>
@@ -95,7 +95,7 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
           <summary>Decent matches</summary>
            <ul>
           {
-            decent.map(this.mapLi)
+            this.merge(decent).map(this.mapLi)
           }
           </ul>
         </details>
@@ -103,7 +103,7 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
           <summary>Terrible matches</summary>
            <ul>
           {
-            terrible.map(this.mapLi)
+            this.merge(terrible).map(this.mapLi)
           }
           </ul>
         </details>
@@ -114,6 +114,29 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
   private mapLi(v: Interval) {
     const time = `${roundFormat(v.low)} and ${roundFormat(v.high)}`
     return (<li key={time}>{`Start between ${time}`}</li>)
+  }
+
+  private merge(arr: Interval[]) {
+    if (arr.length < 2) {
+      return arr
+    }
+
+    const ret: Interval[] = []
+    let temp = arr[0]
+    for (let i = 1; i < arr.length; i++) {
+      const curr = arr[i]
+      if (temp.high === curr.low) {
+        temp = {
+          low: temp.low,
+          high: curr.high,
+        }
+      } else {
+        ret.push(temp)
+        temp = curr
+      }
+    }
+
+    return ret
   }
 }
 
