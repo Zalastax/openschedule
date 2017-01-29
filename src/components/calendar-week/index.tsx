@@ -7,7 +7,7 @@ import uniqBy from 'lodash/uniqBy'
 import mapValues from 'lodash/mapValues'
 
 import { Interval, IntervalTree } from 'node-interval-tree'
-import { fillEmpty, flatten, IntervalSplit } from 'interval'
+import { fillEmpty, flatten, IntervalSplit } from 'util/interval'
 
 import TetherComponent from 'components/tether'
 

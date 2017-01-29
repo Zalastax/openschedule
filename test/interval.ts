@@ -2,7 +2,7 @@ import 'mocha'
 import { expect } from 'chai'
 
 import { Interval, IntervalTree } from 'node-interval-tree'
-import { searchInOrder, flatten } from '../src/interval'
+import { searchInOrder, flatten } from '../src/util/interval'
 
 interface StringInterval extends Interval{
   data: string
