@@ -7,6 +7,7 @@ import { ScoreIntervalSplit, score, IntervalSplit, fillEmpty, flatten, ScoreChec
 import { Interval } from 'node-interval-tree'
 import * as moment from 'moment'
 import { roundFormat } from 'util/time'
+import { forPair } from 'util/array'
 
 import {
   IcsInterval,
@@ -64,9 +65,7 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
 
     const terribleThreshhold = maxCheckpointScore * 1.5
 
-    for (let i = 0; i < data.length - 1; i++) {
-      const curr = data[i]
-      const next = data[i + 1]
+    forPair((curr, next) => {
       const score = (curr.score + next.score)
       let arr = decent
 
@@ -80,7 +79,7 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
         low: curr.time,
         high: next.time,
       })
-    }
+    }, data)
 
     return (
       <div>
