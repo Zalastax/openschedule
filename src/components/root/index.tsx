@@ -5,6 +5,7 @@ import CalendarWeek from 'components/calendar-week'
 import ErrorDisplay from 'components/errors'
 import CalendarInput from 'components/input'
 import WeekSelection from 'components/week-selection'
+import Search from 'components/search'
 
 export default class Root extends React.Component<void, void> {
 
@@ -19,6 +20,7 @@ export default class Root extends React.Component<void, void> {
         <CalendarSelection />
         <WeekSelection />
         <ErrorDisplay />
+        <Search />
         <CalendarWeek />
       </div>
     )
