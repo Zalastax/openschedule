@@ -210,3 +210,140 @@ export function fillEmpty<T extends Interval>(splits: IntervalSplit<T>[], low: n
 
   return ret
 }
+
+export interface ScoreIntervalSplit<T extends Interval> extends IntervalSplit<T> {
+  score: number
+}
+
+function safeInc(max: number, current: number) {
+  return Math.min(max, current + 1)
+}
+
+export interface ScoreCheckpoint {
+  time: number
+  score: number
+}
+
+// Assumes splits are continuous, non-empty, and have a total length greater than findMilliseconds
+// i.e. have ben run through fillEmpty.
+// Returns an array of score checkpoints, which are ordered by time.
+// A score checkpoint is a snapshot of how good it is to start at that time.
+// The score between two checkpoints can be linearly interpolated
+export function score<T extends Interval>(
+  splits: ScoreIntervalSplit<T>[],
+  // range: ScoreRangeDay,
+  findMilliseconds: number,
+  ): ScoreCheckpoint[] {
+  const inc: (current: number) => number = safeInc.bind(undefined, splits.length - 1)
+  // special case if there's only one interval in split
+  if (splits.length === 1) {
+    const elem = splits[0]
+    const low = elem.low
+    const high = elem.high
+    const score = findMilliseconds * elem.score
+    return [
+      { time: low, score },
+      { time: high, score },
+      ]
+  }
+
+  const ret: ScoreCheckpoint[] = []
+
+  // inidices for sliding window
+  let l = 0
+  let r = 0
+
+  // goals for the sliding windows high and low values
+  let low = splits[l].low
+  let high = low + findMilliseconds
+
+  // move end of sliding window until it meets the goal
+  while (splits[r].high < high && r < splits.length) {
+    r++
+  }
+
+  // stop when end of sliding window has reached end of range
+  while (r < splits.length) {
+
+    // determine next l and r so they're available when scoring
+    let nextL = l
+    let nextR = r
+    let nextLow = low
+    let nextHigh = high
+
+    if (l === splits.length - 1) {
+      nextR = splits.length
+    } else {
+        // guard against increasing l or r too much
+      let safeNextR = inc(r)
+      let safeNextL = inc(l)
+      let distToNextL = splits[safeNextL].low - low
+      let distToNextR = splits[safeNextR].high - high
+
+      if (distToNextL < distToNextR) {
+        nextL = safeNextL
+        nextLow = splits[nextL].low
+        nextHigh = nextLow + findMilliseconds
+
+        // move right index if needed
+        if (nextHigh > splits[r].high) {
+          nextR = safeNextR
+        }
+      } else if (distToNextL > distToNextR) {
+        nextR = safeNextR
+        nextHigh = splits[nextR].high
+        nextLow = nextHigh - findMilliseconds
+      } else {
+        // should only happen if we are done or splits after each other are of length findMinutes,
+        // meaning that we don't want to use safeNext so that the loop will exit
+        nextL++
+        nextR++
+        nextLow = splits[nextL].low
+        nextHigh = nextLow + findMilliseconds
+      }
+    }
+
+    const snapshot: ScoreCheckpoint = {
+      time: low,
+      score: 0,
+    }
+
+    // special case score for first and last element
+    snapshot.score += (Math.min(splits[l].high, high) - low) * splits[l].score
+    // don't double count if first and last element are the same
+    if (l !== r) {
+      snapshot.score += (high - splits[r].low) * splits[r].score
+    }
+
+    // give a score for the current sliding window, excluding first and last element (already handled)
+    for (let i = l + 1; i <= r - 1; i++) {
+      let elem = splits[i]
+      snapshot.score += (elem.high - elem.low) * elem.score
+    }
+
+    ret.push(snapshot)
+    if (nextLow - low > findMilliseconds) {
+      const extraSnapshot: ScoreCheckpoint = {
+        time: nextLow - findMilliseconds,
+        score: snapshot.score,
+      }
+      ret.push(extraSnapshot)
+    }
+    l = nextL
+    r = nextR
+    low = nextLow
+    high = nextHigh
+  }
+
+  const lastSnapshot = ret[ret.length - 1]
+  const endTime = splits[splits.length - 1].high - findMilliseconds
+
+  if (endTime > lastSnapshot.time) {
+    ret.push({
+      time: endTime,
+      score: lastSnapshot.score,
+    })
+  }
+
+  return ret
+}
