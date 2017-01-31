@@ -1,1 +1,5 @@
-{}
+{
+  "projects": {
+    "production": "openschedule-48bae"
+  }
+}
