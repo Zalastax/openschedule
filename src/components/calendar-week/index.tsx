@@ -17,9 +17,6 @@ import {
   URL,
  } from 'model'
 
-// Set locale to ISO 8601 weeks
-moment.updateLocale('en-gb', { week: { dow: 1, doy: 4 } })
-
 import DayHours from './hours'
 
 import * as CSS from './index.styl'
