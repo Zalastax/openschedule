@@ -4,6 +4,7 @@ export { State } from './modules/root'
 export { TREE_TOGGLE, TreeToggle } from './modules/tree'
 export { FILE_LOAD, REQUEST_URL, SELECTION_CHANGE, CalendarsState } from './modules/calendars'
 export { WEEK_OFFSET } from './modules/date'
+export { SEARCH } from './modules/search'
 export { Api } from './api'
 
 export interface IcsInterval extends IcsEntry, Interval {

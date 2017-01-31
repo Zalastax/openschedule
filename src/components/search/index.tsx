@@ -1,23 +1,20 @@
 import * as React from 'react'
 import { connect } from 'react-redux'
+import { Dispatch } from 'redux'
 
-import uniqBy from 'lodash/uniqBy'
-
-import { ScoreIntervalSplit, score, IntervalSplit, fillEmpty, flatten, ScoreCheckpoint } from 'util/interval'
+import { ScoreCheckpoint } from 'util/interval'
 import { Interval } from 'node-interval-tree'
-import * as moment from 'moment'
 import { roundFormat } from 'util/time'
 import { forPair } from 'util/array'
 
 import {
-  IcsInterval,
   State,
+  SEARCH,
  } from 'model'
 
 interface SearchInputProps {
   onSearch: (minutes: number) => void
 }
-
 
 class SearchInput extends React.Component<SearchInputProps, void> {
 
@@ -140,70 +137,38 @@ class SearchResults extends React.Component<SearchResultsProps, void> {
   }
 }
 
-interface SearchProps {
-  intervals: ScoreIntervalSplit<IcsInterval>[]
-  maxIntervalScore: number
-}
-
-interface SearchState {
-  searchResult: ScoreCheckpoint[]
+interface SearchStateProps {
+  result: ScoreCheckpoint[]
   maxCheckpointScore: number
 }
 
+interface SearchDispatchProps {
+  onSearch: (minutes: number) => void
+}
 
-class Search extends React.Component<SearchProps, SearchState> {
-  public state: SearchState = {
-    searchResult: [],
-    maxCheckpointScore: 0,
-  }
+interface SearchProps extends SearchDispatchProps, SearchStateProps {}
+
+class Search extends React.Component<SearchProps, void> {
 
   public render() {
 
     return (
       <div>
-        <SearchInput onSearch={this.onSearch} />
-        <SearchResults data={this.state.searchResult} maxCheckpointScore={this.state.maxCheckpointScore} />
+        <SearchInput onSearch={this.props.onSearch} />
+        <SearchResults data={this.props.result} maxCheckpointScore={this.props.maxCheckpointScore} />
       </div>
     )
   }
-
-  private onSearch = (minutes: number) => {
-    const ms = minutes * 60 * 1000
-    this.setState({
-      searchResult: score(this.props.intervals, ms),
-      maxCheckpointScore: ms * this.props.maxIntervalScore,
-    })
-  }
 }
 
-function scoreIntervalSplit(interval: IntervalSplit<IcsInterval>): ScoreIntervalSplit<IcsInterval> {
-  const uniqueCount = uniqBy(interval.overlapping, v => v.source).length
+function mapStateToProps(state: State): SearchStateProps {
+  return state.search
+}
 
+const mapDispatchToProps = (dispatch: Dispatch<State>): SearchDispatchProps => {
   return {
-    score: uniqueCount,
-    low: interval.low,
-    high: interval.high,
-    overlapping: interval.overlapping,
+    onSearch: (minutes: number) => { dispatch(SEARCH(minutes)) },
   }
 }
 
-function mapStateToProps(state: State): SearchProps {
-  // Just search weeks for now
-  const currentWeekStart = moment().startOf('week')
-  const weekStart = moment(currentWeekStart).add(state.date.offset, 'week')
-  const weekEnd = moment(weekStart).endOf('week')
-
-  const splits = fillEmpty(
-                  flatten(state.tree.tree, +weekStart, +weekEnd),
-                  +weekStart,
-                  +weekEnd)
-
-  const intervals = splits.map(scoreIntervalSplit)
-
-  return {
-    intervals,
-    maxIntervalScore: state.schedule.selected.length,
-  }
-}
-
-export default connect(mapStateToProps)(Search)
+export default connect(mapStateToProps, mapDispatchToProps)(Search)
