@@ -26,7 +26,7 @@ interface ET {
 
 export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: MiddlewareAPI<State>) => {
   const real = action$
-  .map<ReduxAction, Action<string> | Action<undefined> | undefined>(x => {
+  .map<ReduxAction, Action<string> | undefined>(x => {
     const f = errorTranslators[x.type]
     if (f !== undefined) {
       const fx = f(x)
@@ -48,7 +48,7 @@ export const errorsEpic = (action$: ActionsObservable<ReduxAction>, _store: Midd
 // Reducer
 // =============================================================================
 
-export const errors = (state = {}, action: ReduxAction): ErrorsState => {
+export const errors = (state: ErrorsState = {}, action: ReduxAction): ErrorsState => {
   if (isType(action, NEW_ERROR)) {
     return {
       latestError: action.payload,
